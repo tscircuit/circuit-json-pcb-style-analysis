@@ -52,15 +52,18 @@ IDs remain stable for a fixed input order and are distinct across rules and dupl
 
 The rendering focuses on routed copper; it does not currently render component bodies, pads, silkscreen, or board outlines. `bounds` and endpoint data also support an overlay on the PCB viewer's complete board rendering.
 
-The committed **416 SVG snapshots** cover 32 synthetic cases and a routed Arduino Micro: 320 odd-angle errors plus 26 long-segment errors, each with a detail snapshot. Cases include all quadrants, short/long/diagonal segments, exact length boundaries, duplicate points, bottom copper, vias, pads, and clean examples. The gallery shows overview/detail drawings and JSON. The Arduino Micro debugger supports stepping through the real dataset.
+The committed **992 SVG snapshots** use three actual routed boards: Arduino Micro, ABSE Game Boy 1.0.16, and a USB-C flashlight. There are complete-board and per-layer overviews plus a detail drawing for every error (981 total). No synthetic traces or isolated-segment fixtures are used for visual snapshots or debugger pages.
 
+The regression tests exercise complete boards and verify that emitted issues select the original copper and retain original route indices and metadata. They cover the Game Boy's 292 vias and duplicated coordinates at layer transitions, repeated GND trace IDs on the flashlight, two independent errors on one Game Boy segment, pipeline stage isolation, and artifact filtering on Arduino Micro's inner layers. The flashlight provides real horizontal/vertical/45° routes with zero odd-angle errors.
+
+The gallery lets you select a real board and layer; each board also has its own step-by-step debugger. See [fixture provenance](tests/assets/README.md) for pinned upstream sources.
 ```sh
 bun install
 bun test
 bun run typecheck
 bun run format:check
 bun run build
-bun run start          # Cosmos: gallery and two solver debuggers
+bun run start          # Cosmos: gallery and three real-board solver debuggers
 bun run build:site
 UPDATE_SNAPSHOTS=1 bun test  # explicitly regenerate visual expectations
 ```
