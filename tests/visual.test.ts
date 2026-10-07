@@ -1,11 +1,7 @@
 import { expect, test } from "bun:test"
 import { readFileSync, writeFileSync, existsSync } from "node:fs"
-import {
-  createPcbStyleIssueArtifacts,
-  renderPcbStyleSvg,
-} from "../lib/create-pcb-style-issue-artifacts"
+import { renderPcbStyleSvg } from "../lib/create-pcb-style-issue-artifacts"
 import { analyzePcbStyle } from "../lib"
-import { buildAnalysisContext } from "../lib/segments"
 import { realBoards } from "./fixtures/real-boards"
 
 function snapshot(name: string, svg: string) {
@@ -18,7 +14,7 @@ function snapshot(name: string, svg: string) {
 // Every drawing uses the complete routed board; no generated traces or isolated segment fixtures.
 for (const board of realBoards) {
   test(
-    "visual: " + board.name + ", board/layer overviews and every located error",
+    "visual: " + board.name + ", all problematic segments highlighted",
     () => {
       const cj = board.circuitJson
       const analysis = analyzePcbStyle(cj)
@@ -38,23 +34,6 @@ for (const board of realBoards) {
           title: board.name + " — all style errors",
         }),
       )
-      const layers = [
-        ...new Set(buildAnalysisContext(cj).segments.map((s) => s.layer)),
-      ].sort()
-      for (const layer of layers)
-        snapshot(
-          board.id + "-layer-" + layer,
-          renderPcbStyleSvg(
-            cj,
-            analysis.issues.filter((i) => i.layer === layer),
-            { layer, title: board.name + " — " + layer },
-          ),
-        )
-      for (const artifact of createPcbStyleIssueArtifacts(cj, { analysis }))
-        snapshot(
-          board.id + "-" + artifact.fileName.replace(".svg", ""),
-          artifact.content,
-        )
     },
   )
 }

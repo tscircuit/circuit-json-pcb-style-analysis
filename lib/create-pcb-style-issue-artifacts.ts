@@ -125,18 +125,20 @@ export function renderPcbStyleSvg(
     .map(
       (s, i) =>
         line(s, "#ff5555", true) +
-        '<circle cx="' +
-        x(s.location.x) +
-        '" cy="' +
-        y(s.location.y) +
-        '" r="10" fill="#fff" stroke="#ff5555" stroke-width="2"/>' +
-        '<text x="' +
-        x(s.location.x) +
-        '" y="' +
-        (y(s.location.y) + 4) +
-        '" text-anchor="middle" fill="#9b1111" font-size="11">' +
-        (i + 1) +
-        "</text>",
+        (issues.length === 1
+          ? '<circle cx="' +
+            x(s.location.x) +
+            '" cy="' +
+            y(s.location.y) +
+            '" r="10" fill="#fff" stroke="#ff5555" stroke-width="2"/>' +
+            '<text x="' +
+            x(s.location.x) +
+            '" y="' +
+            (y(s.location.y) + 4) +
+            '" text-anchor="middle" fill="#9b1111" font-size="11">' +
+            (i + 1) +
+            "</text>"
+          : ""),
     )
     .join("")
   const title =

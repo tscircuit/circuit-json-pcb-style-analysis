@@ -52,7 +52,9 @@ IDs remain stable for a fixed input order and are distinct across rules and dupl
 
 The rendering focuses on routed copper; it does not currently render component bodies, pads, silkscreen, or board outlines. `bounds` and endpoint data also support an overlay on the PCB viewer's complete board rendering.
 
-The committed **992 SVG snapshots** use three actual routed boards: Arduino Micro, ABSE Game Boy 1.0.16, and a USB-C flashlight. There are complete-board and per-layer overviews plus a detail drawing for every error (981 total). No synthetic traces or isolated-segment fixtures are used for visual snapshots or debugger pages.
+Visual regression tests commit **one overview snapshot per real board**: Arduino Micro, ABSE Game Boy 1.0.16, and a USB-C flashlight. Each overview highlights every problematic trace segment on the complete board. There are three snapshots total, with no per-issue or per-layer snapshot files.
+
+The library still supports generating an artifact for every individual issue through `createPcbStyleIssueArtifacts`; this capability is exercised by the real-board artifact regression tests without committing a separate snapshot for every error.
 
 The regression tests exercise complete boards and verify that emitted issues select the original copper and retain original route indices and metadata. They cover the Game Boy's 292 vias and duplicated coordinates at layer transitions, repeated GND trace IDs on the flashlight, two independent errors on one Game Boy segment, pipeline stage isolation, and artifact filtering on Arduino Micro's inner layers. The flashlight provides real horizontal/vertical/45° routes with zero odd-angle errors.
 
