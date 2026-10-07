@@ -1,0 +1,8 @@
+node_modules/
+bun.lock
+bun.lockb
+.cursor/
+CLAUDE.md
+dist/
+cosmos-export/
+
