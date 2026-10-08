@@ -1,6 +1,7 @@
 import type { CircuitJson } from "circuit-json"
 import arduinoMicro from "../assets/arduino-micro.circuit.json"
 import gameboy from "../assets/abse-gameboy.circuit.json"
+import rcCar from "../assets/rc-car-controller.circuit.json"
 import flashlight from "../assets/usb-c-flashlight.circuit.json"
 
 export const realBoards = [
@@ -21,5 +22,11 @@ export const realBoards = [
     name: "USB-C flashlight",
     circuitJson: flashlight as CircuitJson,
     expected: { traces: 17, candidates: 4, issues: 0, strictIssues: 0 },
+  },
+  {
+    id: "rc-car-controller",
+    name: "RC car controller",
+    circuitJson: rcCar as CircuitJson,
+    expected: { traces: 94, candidates: 60, issues: 2, strictIssues: 4 },
   },
 ]

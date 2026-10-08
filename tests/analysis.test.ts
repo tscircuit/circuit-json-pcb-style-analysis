@@ -230,3 +230,40 @@ test("Arduino Micro's inner-layer artifacts keep global issue indices and highli
     expect(artifact.descriptionXml).toContain('layer="inner2"')
   }
 })
+
+test("RC car controller highlights its two long odd-angle bottom-layer segments at the default thresholds", () => {
+  const cj = realBoards.find((b) => b.id === "rc-car-controller")!.circuitJson
+  const analysis = analyzePcbStyle(cj)
+  expect(
+    analysis.issues.map((i) => [
+      i.issueId,
+      i.circuitJsonIndex,
+      i.startRouteIndex,
+      i.endRouteIndex,
+      i.layer,
+    ]),
+  ).toEqual([
+    ["odd-angle:1360:4", 1360, 4, 5, "bottom"],
+    ["odd-angle:1360:5", 1360, 5, 6, "bottom"],
+  ])
+  expect(analysis.issues[0]).toMatchObject({
+    pcbTraceId: "pcb_trace_3",
+    sourceTraceId: "source_trace_44",
+    start: { x: -15.5, y: 9.1 },
+    end: { x: -3, y: -12.000000000000002 },
+    maxSegmentLengthMm: 5,
+    angleToleranceDegrees: 4,
+    nearestAllowedAngleDegrees: 315,
+  })
+  expect(analysis.issues[0].lengthMm).toBeCloseTo(24.5246814454337)
+  expect(analysis.issues[0].deviationDegrees).toBeCloseTo(14.35677595345652)
+  expect(analysis.issues[1].lengthMm).toBeCloseTo(20.94570361673248)
+  expect(analysis.issues[1].deviationDegrees).toBeCloseTo(5.4792337651067555)
+  // Both consecutive segments share a trace ID but retain independent locations.
+  const svg = renderPcbStyleSvg(cj, analysis.issues)
+  expect(svg.match(/<line[^>]*stroke="#ff5555"/g)).toHaveLength(2)
+  const artifacts = createPcbStyleIssueArtifacts(cj)
+  expect(artifacts.map((a) => a.issue)).toEqual(analysis.issues)
+  expect(artifacts.map((a) => a.issueIndex)).toEqual([0, 1])
+  expect(createPcbStyleIssueArtifacts(cj, { layer: "top" })).toEqual([])
+})

@@ -4,7 +4,7 @@ import { renderPcbStyleSvg } from "../lib/create-pcb-style-issue-artifacts"
 import { buildAnalysisContext } from "../lib/segments"
 import { realBoards } from "../tests/fixtures/real-boards"
 export default function Gallery() {
-  const [id, setId] = useState("abse-gameboy")
+  const [id, setId] = useState("rc-car-controller")
   const [layer, setLayer] = useState("")
   const board = realBoards.find((b) => b.id === id)!
   const analysis = useMemo(() => analyzePcbStyle(board.circuitJson), [board])

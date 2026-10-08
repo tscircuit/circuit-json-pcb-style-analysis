@@ -27,3 +27,16 @@ SHA-256 digests of the copied source files:
 
 - `abse-gameboy.circuit.json`: `a6f095d4602d0ee2621daba8153203816c8039188144220492fb1b4d6e2275fa`
 - `usb-c-flashlight.circuit.json`: `58b59df398e593913614e3d3808f9903098d2d4ea63fa812dd3a93425a47a548`
+
+## RC car controller — positive default-rule example
+
+Source: [tscircuit/core's RC car controller Circuit JSON](https://github.com/tscircuit/core/blob/f959993eea647e752eea96a863a15549e7e0c638/tests/repros/assets/rc-car-schematic-section-title-overlap.circuit.json), pinned at commit `f959993eea647e752eea96a863a15549e7e0c638`. The source group is `CampactRcCarController`, with ESP-12E control, a buck supply, motor driver, and a stackable interface. Although the upstream regression concerns schematic section titles, its fixture includes the complete routed PCB: 1,629 elements, 94 traces, and the original two-layer 56 × 38 mm board.
+
+`rc-car-controller.circuit.json` is copied byte-for-byte from upstream. No coordinates, routes, or analyzer thresholds are changed for the overview snapshot. Of 60 segments longer than 5 mm, two fail the default 4° angle tolerance. Both are consecutive bottom-layer segments of `pcb_trace_3` at original Circuit JSON index 1360:
+
+- Route indices 4 → 5: 24.524681 mm, direction 300.643224°, nearest allowed 315°, deviation 14.356776°.
+- Route indices 5 → 6: 20.945704 mm, direction 5.479234°, nearest allowed 0°, deviation 5.479234°.
+
+Both are highlighted in one combined board snapshot. Explicit 0.1° tolerance produces four errors, used by the full-corpus issue-location tests.
+
+SHA-256: `62471a68e76f8bc5f321769e5dcdbf81cccc93bb1103389f32a64a5a6757da54`.
