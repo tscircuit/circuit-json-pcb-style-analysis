@@ -56,20 +56,20 @@ IDs remain stable for a fixed input order and are distinct across duplicate trac
 
 The rendering focuses on routed copper; it does not currently render component bodies, pads, silkscreen, or board outlines. `bounds` and endpoint data also support an overlay on the PCB viewer's complete board rendering.
 
-Visual regression tests commit **one overview snapshot per real board**: RC car controller, Arduino Micro, ABSE Game Boy 1.0.16, and a USB-C flashlight. Each overview highlights every segment satisfying both conditions in red. The RC car controller has two errors at the default 5 mm / 4° thresholds, both highlighted in its single overview. The other three boards pass and serve as negative regressions. There are four snapshots total, with no per-issue or per-layer snapshot files.
+Visual regression tests commit **one overview snapshot per real board**. Positive examples at the default 5 mm / 4° thresholds are the published PD power supply (5 errors), Corne keyboard (45), NEMA-34 controller (1), and RC car controller (2). Each overview highlights all failing segments in red. Arduino Micro, ABSE Game Boy, and USB-C flashlight are negative regressions. There are seven snapshots total, with no per-issue or per-layer snapshot files. A [14-board published survey](tests/assets/published-board-survey.md) documents the broader search and pinned releases.
 
 The library still supports generating an artifact for every individual issue through `createPcbStyleIssueArtifacts`; this capability is exercised by the real-board artifact regression tests without committing a separate snapshot for every error.
 
 The regression tests exercise complete boards and verify that emitted issues select the original copper and retain original route indices and metadata. They cover the Game Boy's 292 vias and duplicated coordinates at layer transitions, repeated GND trace IDs on the flashlight, configurable tolerance on one Game Boy segment, pipeline stage isolation, and artifact filtering on Arduino Micro's inner layers. The flashlight provides real long horizontal/vertical/45° routes that must pass. Positive issue-location and artifact assertions use unmodified boards with explicitly stricter options: 0.1° tolerance produces three errors on Arduino Micro and four on Game Boy; a 0.1 mm length threshold exercises Arduino inner-layer artifacts. No board coordinates are changed.
 
-The gallery opens on the RC car controller with both default-rule errors highlighted and lets you select a real board and layer; each board also has its own step-by-step debugger. See [fixture provenance](tests/assets/README.md) for pinned upstream sources.
+The gallery opens on the published PD power supply with all five default-rule errors highlighted and lets you select a real board and layer; each board also has its own step-by-step debugger. See [fixture provenance](tests/assets/README.md) for pinned upstream sources.
 ```sh
 bun install
 bun test
 bun run typecheck
 bun run format:check
 bun run build
-bun run start          # Cosmos: gallery and four real-board solver debuggers
+bun run start          # Cosmos: gallery and seven real-board solver debuggers
 bun run build:site
 UPDATE_SNAPSHOTS=1 bun test  # explicitly regenerate visual expectations
 ```

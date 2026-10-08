@@ -40,3 +40,7 @@ Source: [tscircuit/core's RC car controller Circuit JSON](https://github.com/tsc
 Both are highlighted in one combined board snapshot. Explicit 0.1° tolerance produces four errors, used by the full-corpus issue-location tests.
 
 SHA-256: `62471a68e76f8bc5f321769e5dcdbf81cccc93bb1103389f32a64a5a6757da54`.
+
+## Published boards from tscircuit.com
+
+See the [14-board survey](published-board-survey.md) and [release/projection provenance](published-boards.provenance.json). The positive default-rule fixtures are `astra/pd-power-supply` (219 traces / 5 errors), `imrishabh18/corne-keyboard` (437 traces / 45 errors), and `techmannih/NEMA-34-Smart-Motor-Mounted-Stepper-Controller` (1,264 traces / 1 error). Each retains every original board and trace record; unrelated element types are omitted, and the index map preserves correspondence to the full published Circuit JSON. No routing coordinates or thresholds are changed.

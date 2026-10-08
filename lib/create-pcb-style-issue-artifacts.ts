@@ -122,11 +122,12 @@ export function renderPcbStyleSvg(
     )
     .map((s) => line(s, s.layer === "bottom" ? "#74a9d8" : "#9aa9a2"))
     .join("")
+  const individual = options.bounds !== undefined && issues.length === 1
   const highlights = getIssueHighlights(issues)
     .map(
       ({ issue: s, color }, i) =>
         line(s, color, true) +
-        (issues.length === 1
+        (individual
           ? '<circle cx="' +
             x(s.location.x) +
             '" cy="' +
@@ -146,34 +147,33 @@ export function renderPcbStyleSvg(
     .join("")
   const title =
     options.title ?? "PCB style analysis — " + issues.length + " errors"
-  const details =
-    issues.length === 1
-      ? [
-          issues[0].message,
-          "Start (" +
-            issues[0].start.x.toFixed(3) +
-            ", " +
-            issues[0].start.y.toFixed(3) +
-            ") → End (" +
-            issues[0].end.x.toFixed(3) +
-            ", " +
-            issues[0].end.y.toFixed(3) +
-            ") mm",
-          "Layer: " +
-            issues[0].layer +
-            " | Circuit JSON index: " +
-            issues[0].circuitJsonIndex +
-            " | Route indices: " +
-            issues[0].startRouteIndex +
-            " → " +
-            issues[0].endRouteIndex,
-        ]
-      : [
-          "Red: segments exceeding both length and angle thresholds",
-          "Coordinates in millimeters; Y points upward. " +
-            issues.length +
-            " located errors.",
-        ]
+  const details = individual
+    ? [
+        issues[0].message,
+        "Start (" +
+          issues[0].start.x.toFixed(3) +
+          ", " +
+          issues[0].start.y.toFixed(3) +
+          ") → End (" +
+          issues[0].end.x.toFixed(3) +
+          ", " +
+          issues[0].end.y.toFixed(3) +
+          ") mm",
+        "Layer: " +
+          issues[0].layer +
+          " | Circuit JSON index: " +
+          issues[0].circuitJsonIndex +
+          " | Route indices: " +
+          issues[0].startRouteIndex +
+          " → " +
+          issues[0].endRouteIndex,
+      ]
+    : [
+        "Red: segments exceeding both length and angle thresholds",
+        "Coordinates in millimeters; Y points upward. " +
+          issues.length +
+          " located errors.",
+      ]
   return (
     '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="490" viewBox="0 0 800 490"><title>' +
     escapeXml(title) +
