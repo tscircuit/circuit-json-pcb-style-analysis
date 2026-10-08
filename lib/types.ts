@@ -25,21 +25,19 @@ export interface LocatedPcbStyleIssue extends TraceSegment {
   /** Copper-inclusive segment bounds, in PCB millimeters, Y up. */
   bounds: Bounds
 }
-export interface PcbTraceSegmentTooLong extends LocatedPcbStyleIssue {
-  lineItemType: "PcbTraceSegmentTooLong"
-  maxSegmentLengthMm: number
-}
 export interface PcbTraceSegmentOddAngle extends LocatedPcbStyleIssue {
   lineItemType: "PcbTraceSegmentOddAngle"
+  /** Length threshold used to qualify this odd-angle error. */
+  maxSegmentLengthMm: number
   angleDegrees: number
   nearestAllowedAngleDegrees: number
   deviationDegrees: number
   angleToleranceDegrees: number
 }
-export type PcbStyleIssue = PcbTraceSegmentTooLong | PcbTraceSegmentOddAngle
+export type PcbStyleIssue = PcbTraceSegmentOddAngle
 export type PcbStyleIssueType = PcbStyleIssue["lineItemType"]
 export interface PcbStyleAnalysisOptions {
-  /** Strictly greater than this length is an error; default 5 mm. */
+  /** Only segments strictly longer than this are checked for odd angles; default 5 mm. */
   maxSegmentLengthMm?: number
   /** Distance from a multiple of 45 degrees; default 4 degrees. */
   angleToleranceDegrees?: number

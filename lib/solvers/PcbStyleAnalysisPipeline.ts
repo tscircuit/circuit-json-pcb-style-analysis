@@ -1,4 +1,8 @@
-import { BasePipelineSolver, definePipelineStep } from "@tscircuit/solver-utils"
+import {
+  BaseSolver,
+  BasePipelineSolver,
+  definePipelineStep,
+} from "@tscircuit/solver-utils"
 import type { PipelineStep } from "@tscircuit/solver-utils"
 import type { CircuitJson } from "circuit-json"
 import { buildAnalysisContext } from "../segments"
@@ -10,10 +14,9 @@ import type {
 import { visualizeIssues } from "../visualize"
 import { LongTraceSegmentSolver } from "./LongTraceSegmentSolver"
 import { OddAngleTraceSegmentSolver } from "./OddAngleTraceSegmentSolver"
-import type { SegmentIssueSolver } from "./SegmentIssueSolver"
 export class PcbStyleAnalysisPipeline extends BasePipelineSolver<CircuitJson> {
   ctx!: AnalysisContext
-  pipelineDef: PipelineStep<SegmentIssueSolver>[] = [
+  pipelineDef: PipelineStep<BaseSolver>[] = [
     definePipelineStep(
       "LongTraceSegmentSolver",
       LongTraceSegmentSolver,
@@ -27,6 +30,10 @@ export class PcbStyleAnalysisPipeline extends BasePipelineSolver<CircuitJson> {
       (p: PcbStyleAnalysisPipeline) => [
         {
           ctx: p.ctx,
+          candidateSegments: p
+            .getSolver<LongTraceSegmentSolver>("LongTraceSegmentSolver")!
+            .getOutput(),
+          maxSegmentLengthMm: p.options.maxSegmentLengthMm ?? 5,
           angleToleranceDegrees: p.options.angleToleranceDegrees ?? 4,
         },
       ],
@@ -37,18 +44,12 @@ export class PcbStyleAnalysisPipeline extends BasePipelineSolver<CircuitJson> {
     public options: PcbStyleAnalysisOptions = {},
   ) {
     super(circuitJson)
-    if (options.issueTypes) {
-      const names = new Set<string>(
-        options.issueTypes.map((type) =>
-          type === "PcbTraceSegmentTooLong"
-            ? "LongTraceSegmentSolver"
-            : "OddAngleTraceSegmentSolver",
-        ),
-      )
-      this.pipelineDef = this.pipelineDef.filter((stage) =>
-        names.has(stage.solverName),
-      )
-    }
+    // Selecting the issue type still requires the length eligibility stage.
+    if (
+      options.issueTypes &&
+      !options.issueTypes.includes("PcbTraceSegmentOddAngle")
+    )
+      this.pipelineDef = []
     this.MAX_ITERATIONS = circuitJson.reduce(
       (n, e) => n + (e.type === "pcb_trace" ? e.route.length * 2 : 0),
       10,
@@ -59,11 +60,10 @@ export class PcbStyleAnalysisPipeline extends BasePipelineSolver<CircuitJson> {
   }
   override getOutput(): PcbStyleAnalysisResult {
     return {
-      issues: this.pipelineDef.flatMap(
-        (stage) =>
-          this.getSolver<SegmentIssueSolver>(stage.solverName)?.getOutput() ??
-          [],
-      ),
+      issues:
+        this.getSolver<OddAngleTraceSegmentSolver>(
+          "OddAngleTraceSegmentSolver",
+        )?.getOutput() ?? [],
     }
   }
   override getConstructorParams(): [CircuitJson, PcbStyleAnalysisOptions] {

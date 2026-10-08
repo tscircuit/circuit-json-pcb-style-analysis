@@ -169,7 +169,7 @@ export function renderPcbStyleSvg(
             issues[0].endRouteIndex,
         ]
       : [
-          "Amber: >5 mm · Red: odd angle · Purple: both",
+          "Red: segments exceeding both length and angle thresholds",
           "Coordinates in millimeters; Y points upward. " +
             issues.length +
             " located errors.",

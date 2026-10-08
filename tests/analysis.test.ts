@@ -16,13 +16,14 @@ for (const board of realBoards) {
     () => {
       const cj = board.circuitJson
       const original = JSON.stringify(cj)
-      const analysis = analyzePcbStyle(cj)
+      expect(analyzePcbStyle(cj).issues).toHaveLength(board.expected.issues)
+      // Unmodified real boards at a stricter tolerance exercise positive errors.
+      const options = { angleToleranceDegrees: 0.1 }
+      const analysis = analyzePcbStyle(cj, options)
       expect(cj.filter((e) => e.type === "pcb_trace")).toHaveLength(
         board.expected.traces,
       )
-      expect(analysis.issues).toHaveLength(
-        board.expected.longSegments + board.expected.oddAngles,
-      )
+      expect(analysis.issues).toHaveLength(board.expected.strictIssues)
       expect(new Set(analysis.issues.map((i) => i.issueId)).size).toBe(
         analysis.issues.length,
       )
@@ -44,6 +45,10 @@ for (const board of realBoards) {
         expect(issue.start).toEqual(endpoint(a, true))
         expect(issue.end).toEqual(endpoint(b, false))
         expect(issue.severity).toBe("error")
+        expect(issue.lengthMm).toBeGreaterThan(5)
+        expect(issue.maxSegmentLengthMm).toBe(5)
+        expect(issue.deviationDegrees).toBeGreaterThan(0.1)
+        expect(issue.angleToleranceDegrees).toBe(0.1)
         expect(issue.location.x).toBeGreaterThanOrEqual(issue.bounds.minX)
         expect(issue.location.x).toBeLessThanOrEqual(issue.bounds.maxX)
         expect(issue.location.y).toBeGreaterThanOrEqual(issue.bounds.minY)
@@ -55,7 +60,7 @@ for (const board of realBoards) {
           Math.max(issue.start.x, issue.end.x),
         )
       }
-      expect(analyzePcbStyle(cj)).toEqual(analysis)
+      expect(analyzePcbStyle(cj, options)).toEqual(analysis)
       expect(JSON.stringify(cj)).toBe(original)
     },
   )
@@ -91,25 +96,34 @@ test("Game Boy's 292 vias retain route indices and exclude duplicate points at l
   ).toEqual([])
 })
 
-test("USB-C flashlight's repeated GND trace IDs still select four distinct long copper segments and no odd angles", () => {
-  const issues = analyzePcbStyle(realBoards[2].circuitJson).issues
-  expect(issues.map((i) => [i.issueId, i.pcbTraceId, i.layer])).toEqual([
-    ["long-segment:185:0", "pcb_trace_GND", "bottom"],
-    ["long-segment:192:0", "pcb_trace_GND", "top"],
-    ["long-segment:192:1", "pcb_trace_GND", "top"],
-    ["long-segment:196:0", "pcb_trace_Net-(SW1-Pad2)", "top"],
+test("USB-C flashlight's long horizontal and diagonal GND/switch runs are accepted", () => {
+  const cj = realBoards[2].circuitJson
+  const segments = buildAnalysisContext(cj).segments.filter(
+    (s) => s.lengthMm > 5,
+  )
+  expect(
+    segments.map((s) => [
+      s.circuitJsonIndex,
+      s.startRouteIndex,
+      s.pcbTraceId,
+      s.layer,
+    ]),
+  ).toEqual([
+    [185, 0, "pcb_trace_GND", "bottom"],
+    [192, 0, "pcb_trace_GND", "top"],
+    [192, 1, "pcb_trace_GND", "top"],
+    [196, 0, "pcb_trace_Net-(SW1-Pad2)", "top"],
   ])
-  expect(issues[0]).toMatchObject({
+  expect(segments[0]).toMatchObject({
     start: { x: 4.325, y: -11.6223 },
     end: { x: -4.325, y: -11.6223 },
     lengthMm: 8.65,
-    location: { x: 0, y: -11.6223 },
   })
-  // Its two diagonal GND/switch runs are legitimate multiples of 45 degrees.
-  // Their highlights must convey length violations, never angle violations.
-  const svg = renderPcbStyleSvg(realBoards[2].circuitJson, issues)
-  expect(svg.match(/<line[^>]*stroke="#f59e0b"/g)).toHaveLength(4)
-  expect(svg).not.toContain('stroke="#ff5555"')
+  const issues = analyzePcbStyle(cj).issues
+  expect(issues).toEqual([])
+  // Length alone must never produce a highlight, including under strict angles.
+  expect(analyzePcbStyle(cj, { angleToleranceDegrees: 0 }).issues).toEqual([])
+  expect(renderPcbStyleSvg(cj, issues)).not.toContain('stroke="#ff5555"')
 })
 
 test("Game Boy's near-horizontal source_trace_141_0 is accepted at 4° but configurable strict analysis flags it", () => {
@@ -120,29 +134,11 @@ test("Game Boy's near-horizontal source_trace_141_0 is accepted at 4° but confi
     issues.filter((i) => i.circuitJsonIndex === 933 && i.startRouteIndex === 7)
   const defaultAnalysis = analyzePcbStyle(cj)
   const defaultIssues = selectSegment(defaultAnalysis.issues)
-  expect(defaultIssues.map((i) => i.lineItemType)).toEqual([
-    "PcbTraceSegmentTooLong",
-  ])
-  expect(
-    renderPcbStyleSvg(cj, defaultIssues).match(/<line[^>]*stroke="#f59e0b"/g),
-  ).toHaveLength(1)
-  const defaultOddAngles = defaultAnalysis.issues.filter(
-    (i) => i.lineItemType === "PcbTraceSegmentOddAngle",
-  )
-  expect(defaultOddAngles.length).toBeGreaterThan(0)
-  for (const issue of defaultOddAngles) {
-    if (issue.lineItemType === "PcbTraceSegmentOddAngle") {
-      expect(issue.angleToleranceDegrees).toBe(4)
-      expect(issue.deviationDegrees).toBeGreaterThan(4)
-    }
-  }
+  expect(defaultIssues).toEqual([])
   const issues = selectSegment(
     analyzePcbStyle(cj, { angleToleranceDegrees: 0.1 }).issues,
   )
-  expect(issues.map((i) => i.lineItemType)).toEqual([
-    "PcbTraceSegmentTooLong",
-    "PcbTraceSegmentOddAngle",
-  ])
+  expect(issues.map((i) => i.lineItemType)).toEqual(["PcbTraceSegmentOddAngle"])
   for (const issue of issues)
     expect(issue).toMatchObject({
       pcbTraceId: "source_trace_141_0",
@@ -154,42 +150,64 @@ test("Game Boy's near-horizontal source_trace_141_0 is accepted at 4° but confi
   expect(odd).toMatchObject({
     nearestAllowedAngleDegrees: 0,
     angleToleranceDegrees: 0.1,
+    maxSegmentLengthMm: 5,
   })
   if (odd.lineItemType === "PcbTraceSegmentOddAngle")
     expect(odd.deviationDegrees).toBeCloseTo(0.2606086399129026)
-  // Two diagnostics on one segment get one purple highlight, not a misleading
-  // length/angle color determined by whichever issue was rendered last.
+  // The combined condition emits one located error and one red highlight.
+  expect(issues).toHaveLength(1)
+  const length = issues[0].lengthMm
+  const deviation = issues[0].deviationDegrees
+  expect(
+    selectSegment(
+      analyzePcbStyle(cj, {
+        angleToleranceDegrees: 0.1,
+        maxSegmentLengthMm: length,
+      }).issues,
+    ),
+  ).toEqual([])
+  expect(
+    selectSegment(
+      analyzePcbStyle(cj, { angleToleranceDegrees: deviation }).issues,
+    ),
+  ).toEqual([])
   const svg = renderPcbStyleSvg(realBoards[1].circuitJson, issues)
-  expect(svg.match(/<line[^>]*stroke="#a78bfa"/g)).toHaveLength(1)
+  expect(svg.match(/<line[^>]*stroke="#ff5555"/g)).toHaveLength(1)
 })
 
-test("Game Boy analysis can pause between stages, and selecting a rule produces exactly that full-board stage output", () => {
+test("Game Boy pipeline selects long candidates before angle analysis without exposing length errors", () => {
   const cj = realBoards[1].circuitJson
-  const solver = new PcbStyleAnalysisPipeline(cj)
-  solver.solveUntilStage("OddAngleTraceSegmentSolver")
-  expect(solver.failed).toBe(false)
-  expect(solver.solved).toBe(false)
-  expect(solver.getOutput().issues).toHaveLength(217)
+  for (const tolerance of [4, 0.1]) {
+    const solver = new PcbStyleAnalysisPipeline(cj, {
+      angleToleranceDegrees: tolerance,
+    })
+    solver.solveUntilStage("OddAngleTraceSegmentSolver")
+    expect(solver.failed).toBe(false)
+    expect(solver.solved).toBe(false)
+    const candidates = solver.getStageOutput<
+      ReturnType<typeof buildAnalysisContext>["segments"]
+    >("LongTraceSegmentSolver")!
+    expect(candidates).toHaveLength(217)
+    expect(candidates.every((s) => s.lengthMm > 5)).toBe(true)
+    expect(solver.getOutput().issues).toEqual([])
+    solver.solve()
+    expect(solver.getOutput().issues).toHaveLength(tolerance === 4 ? 0 : 4)
+    expect(
+      analyzePcbStyle(cj, {
+        angleToleranceDegrees: tolerance,
+        issueTypes: ["PcbTraceSegmentOddAngle"],
+      }),
+    ).toEqual(solver.getOutput())
+  }
   expect(
-    solver
-      .getOutput()
-      .issues.every((i) => i.lineItemType === "PcbTraceSegmentTooLong"),
-  ).toBe(true)
-  solver.solve()
-  const { issues } = solver.getOutput()
-  expect(issues).toHaveLength(483)
-  for (const type of [
-    "PcbTraceSegmentTooLong",
-    "PcbTraceSegmentOddAngle",
-  ] as const)
-    expect(analyzePcbStyle(cj, { issueTypes: [type] }).issues).toEqual(
-      issues.filter((i) => i.lineItemType === type),
-    )
+    analyzePcbStyle(cj, { angleToleranceDegrees: 0.1, issueTypes: [] }).issues,
+  ).toEqual([])
 })
 
 test("Arduino Micro's inner-layer artifacts keep global issue indices and highlight only the selected segment", () => {
   const cj = realBoards[0].circuitJson
-  const analysis = analyzePcbStyle(cj)
+  // Lowering the length threshold exercises real inner-layer copper without changing the board.
+  const analysis = analyzePcbStyle(cj, { maxSegmentLengthMm: 0.1 })
   const artifacts = createPcbStyleIssueArtifacts(cj, {
     analysis,
     layer: "inner2",

@@ -18,16 +18,7 @@ for (const board of realBoards) {
     () => {
       const cj = board.circuitJson
       const analysis = analyzePcbStyle(cj)
-      expect(
-        analysis.issues.filter(
-          (i) => i.lineItemType === "PcbTraceSegmentOddAngle",
-        ),
-      ).toHaveLength(board.expected.oddAngles)
-      expect(
-        analysis.issues.filter(
-          (i) => i.lineItemType === "PcbTraceSegmentTooLong",
-        ),
-      ).toHaveLength(board.expected.longSegments)
+      expect(analysis.issues).toHaveLength(board.expected.issues)
       snapshot(
         board.id + "-overview",
         renderPcbStyleSvg(cj, analysis.issues, {

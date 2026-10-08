@@ -1,13 +1,18 @@
 import { useMemo, useState } from "react"
 import { analyzePcbStyle } from "../lib"
 import { renderPcbStyleSvg } from "../lib/create-pcb-style-issue-artifacts"
+import { buildAnalysisContext } from "../lib/segments"
 import { realBoards } from "../tests/fixtures/real-boards"
 export default function Gallery() {
   const [id, setId] = useState("abse-gameboy")
   const [layer, setLayer] = useState("")
   const board = realBoards.find((b) => b.id === id)!
   const analysis = useMemo(() => analyzePcbStyle(board.circuitJson), [board])
-  const layers = [...new Set(analysis.issues.map((i) => i.layer))].sort()
+  const layers = [
+    ...new Set(
+      buildAnalysisContext(board.circuitJson).segments.map((s) => s.layer),
+    ),
+  ].sort()
   const issues = analysis.issues.filter((i) => !layer || i.layer === layer)
   const svg = renderPcbStyleSvg(board.circuitJson, issues, {
     layer: layer || undefined,
@@ -42,8 +47,8 @@ export default function Gallery() {
         </select>
       </label>
       <p>
-        {issues.length} errors. All problematic segments are highlighted on the
-        complete board.
+        {issues.length} errors. Only segments longer than 5 mm and more than 4°
+        from a multiple of 45° are highlighted.
       </p>
       <img
         key={id + layer}
