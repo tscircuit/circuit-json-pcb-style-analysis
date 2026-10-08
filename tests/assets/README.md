@@ -44,3 +44,10 @@ SHA-256: `62471a68e76f8bc5f321769e5dcdbf81cccc93bb1103389f32a64a5a6757da54`.
 ## Published boards from tscircuit.com
 
 See the [14-board survey](published-board-survey.md) and [release/projection provenance](published-boards.provenance.json). The positive default-rule fixtures are `astra/pd-power-supply` (219 traces / 5 errors), `imrishabh18/corne-keyboard` (437 traces / 45 errors), and `techmannih/NEMA-34-Smart-Motor-Mounted-Stepper-Controller` (1,264 traces / 1 error). Each retains every original board and trace record; unrelated element types are omitted, and the index map preserves correspondence to the full published Circuit JSON. No routing coordinates or thresholds are changed.
+
+## AM3352 segmented-run regression
+
+Source: [AM3352 SBC autorouted board, October 8, 2026](https://am3352-sbc-autorouted-20261008.seveibar.chatgpt.site/#file=am3352-sbc.circuit.json), raw asset `/am3352-sbc/circuit.json`.
+Fetched source SHA-256: `36725097b67b289636d32d3edc60ff2906357ce9c445e3c66e33ee3389602e3c`.
+
+`am3352-segmented-trace.circuit.json` retains the complete, unmodified trace at original Circuit JSON index 10435 (`protected-earlier:buzz:grid:source_net_12:0`), projected to fixture index 0. All 309 route points and metadata are preserved; other board records are omitted. Route indices 31 → 308 form an 18.397 mm staircase with steps no longer than 0.1 mm. Each step is horizontal, vertical, or 45°, yet the overall direction is 247.938° (22.062° from the nearest allowed direction). This reproduces gaming both the per-segment length threshold and per-segment angle check.
