@@ -6,6 +6,7 @@ import {
   PcbStyleAnalysisPipeline,
 } from "../lib"
 import { buildAnalysisContext } from "../lib/segments"
+import { renderPcbStyleSvg } from "../lib/create-pcb-style-issue-artifacts"
 import { realBoards } from "./fixtures/real-boards"
 
 for (const board of realBoards) {
@@ -104,6 +105,11 @@ test("USB-C flashlight's repeated GND trace IDs still select four distinct long 
     lengthMm: 8.65,
     location: { x: 0, y: -11.6223 },
   })
+  // Its two diagonal GND/switch runs are legitimate multiples of 45 degrees.
+  // Their highlights must convey length violations, never angle violations.
+  const svg = renderPcbStyleSvg(realBoards[2].circuitJson, issues)
+  expect(svg.match(/<line[^>]*stroke="#f59e0b"/g)).toHaveLength(4)
+  expect(svg).not.toContain('stroke="#ff5555"')
 })
 
 test("Game Boy's near-horizontal source_trace_141_0 emits both errors for the same original segment", () => {
@@ -121,6 +127,17 @@ test("Game Boy's near-horizontal source_trace_141_0 emits both errors for the sa
       start: { x: -13.408130445680602, y: 33.09312314598361 },
       end: { x: -1.6191737403625233, y: 33.03950095624234 },
     })
+  const odd = issues.find((i) => i.lineItemType === "PcbTraceSegmentOddAngle")!
+  expect(odd).toMatchObject({
+    nearestAllowedAngleDegrees: 0,
+    angleToleranceDegrees: 0.1,
+  })
+  if (odd.lineItemType === "PcbTraceSegmentOddAngle")
+    expect(odd.deviationDegrees).toBeCloseTo(0.2606086399129026)
+  // Two diagnostics on one segment get one purple highlight, not a misleading
+  // length/angle color determined by whichever issue was rendered last.
+  const svg = renderPcbStyleSvg(realBoards[1].circuitJson, issues)
+  expect(svg.match(/<line[^>]*stroke="#a78bfa"/g)).toHaveLength(1)
 })
 
 test("Game Boy analysis can pause between stages, and selecting a rule produces exactly that full-board stage output", () => {

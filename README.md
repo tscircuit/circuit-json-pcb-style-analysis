@@ -48,11 +48,11 @@ IDs remain stable for a fixed input order and are distinct across rules and dupl
 
 ## Visual verification
 
-`createPcbStyleIssueArtifacts` returns one cropped, self-contained SVG per issue, with that segment highlighted red, nearby copper as context, exact endpoint coordinates, and a description XML string. Artifacts include `issueIndex`, `issue`, `layer`, `bounds`, `fileName`, `contentType`, and `content`. Rule and layer filters preserve the original analysis indices.
+`createPcbStyleIssueArtifacts` returns one cropped, self-contained SVG per issue, with that segment highlighted by rule, nearby copper as context, exact endpoint coordinates, and a description XML string. Artifacts include `issueIndex`, `issue`, `layer`, `bounds`, `fileName`, `contentType`, and `content`. Rule and layer filters preserve the original analysis indices.
 
 The rendering focuses on routed copper; it does not currently render component bodies, pads, silkscreen, or board outlines. `bounds` and endpoint data also support an overlay on the PCB viewer's complete board rendering.
 
-Visual regression tests commit **one overview snapshot per real board**: Arduino Micro, ABSE Game Boy 1.0.16, and a USB-C flashlight. Each overview highlights every problematic trace segment on the complete board. There are three snapshots total, with no per-issue or per-layer snapshot files.
+Visual regression tests commit **one overview snapshot per real board**: Arduino Micro, ABSE Game Boy 1.0.16, and a USB-C flashlight. Each overview highlights every problematic trace segment on the complete board: amber for length >5 mm, red for odd angles, and purple when both rules apply. Valid 45° directions may be amber for length; they are not angle errors. There are three snapshots total, with no per-issue or per-layer snapshot files.
 
 The library still supports generating an artifact for every individual issue through `createPcbStyleIssueArtifacts`; this capability is exercised by the real-board artifact regression tests without committing a separate snapshot for every error.
 

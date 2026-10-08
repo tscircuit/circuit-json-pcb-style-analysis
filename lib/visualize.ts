@@ -1,9 +1,11 @@
 import type { GraphicsObject } from "graphics-debug"
 import type { AnalysisContext, PcbStyleIssue } from "./types"
+import { getIssueHighlights } from "./issue-highlights"
 export function visualizeIssues(
   ctx: AnalysisContext,
   issues: PcbStyleIssue[],
 ): GraphicsObject {
+  const highlights = getIssueHighlights(issues)
   return {
     coordinateSystem: "cartesian",
     lines: [
@@ -12,17 +14,17 @@ export function visualizeIssues(
         strokeColor: s.layer === "bottom" ? "#60a5fa" : "#94a3b8",
         strokeWidth: s.width,
       })),
-      ...issues.map((issue) => ({
+      ...highlights.map(({ issue, color, message }) => ({
         points: [issue.start, issue.end],
-        strokeColor: "#ef4444",
+        strokeColor: color,
         strokeWidth: Math.max(issue.width * 2, 0.25),
-        label: issue.message,
+        label: message,
       })),
     ],
-    points: issues.map((issue, i) => ({
+    points: highlights.map(({ issue, color, message }, i) => ({
       ...issue.location,
-      color: "#ef4444",
-      label: i + 1 + ": " + issue.lineItemType,
+      color,
+      label: i + 1 + ": " + message,
     })),
   }
 }

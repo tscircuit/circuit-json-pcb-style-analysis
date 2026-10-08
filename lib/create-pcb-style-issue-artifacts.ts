@@ -1,6 +1,7 @@
 import type { CircuitJson } from "circuit-json"
 import { analyzePcbStyle } from "./analyze-pcb-style"
 import { buildAnalysisContext } from "./segments"
+import { getIssueHighlights } from "./issue-highlights"
 import type {
   Bounds,
   PcbStyleAnalysisOptions,
@@ -59,7 +60,7 @@ export function describeIssueXml(issue: PcbStyleIssue): string {
     '" />'
   )
 }
-/** Browser-safe, self-contained vector drawing. Context is muted; only selected issues are red. */
+/** Browser-safe, self-contained vector drawing. Context is muted; selected issues are colored by rule. */
 export function renderPcbStyleSvg(
   circuitJson: CircuitJson,
   issues: PcbStyleIssue[],
@@ -121,16 +122,18 @@ export function renderPcbStyleSvg(
     )
     .map((s) => line(s, s.layer === "bottom" ? "#74a9d8" : "#9aa9a2"))
     .join("")
-  const highlights = issues
+  const highlights = getIssueHighlights(issues)
     .map(
-      (s, i) =>
-        line(s, "#ff5555", true) +
+      ({ issue: s, color }, i) =>
+        line(s, color, true) +
         (issues.length === 1
           ? '<circle cx="' +
             x(s.location.x) +
             '" cy="' +
             y(s.location.y) +
-            '" r="10" fill="#fff" stroke="#ff5555" stroke-width="2"/>' +
+            '" r="10" fill="#fff" stroke="' +
+            color +
+            '" stroke-width="2"/>' +
             '<text x="' +
             x(s.location.x) +
             '" y="' +
@@ -166,7 +169,7 @@ export function renderPcbStyleSvg(
             issues[0].endRouteIndex,
         ]
       : [
-          "Red: style errors · Gray: top copper · Blue: bottom copper",
+          "Amber: >5 mm · Red: odd angle · Purple: both",
           "Coordinates in millimeters; Y points upward. " +
             issues.length +
             " located errors.",

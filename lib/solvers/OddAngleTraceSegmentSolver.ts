@@ -41,9 +41,13 @@ export class OddAngleTraceSegmentSolver extends SegmentIssueSolver {
         s.layer +
         " is at " +
         angleDegrees.toFixed(3) +
-        "° (" +
+        "°; nearest allowed direction " +
+        (nearest % 360) +
+        "° (deviation " +
         deviationDegrees.toFixed(3) +
-        "° from a 45° direction)",
+        "°, tolerance " +
+        this.params.angleToleranceDegrees +
+        "°)",
     }
   }
   override getConstructorParams(): [OddAngleTraceSegmentParams] {
