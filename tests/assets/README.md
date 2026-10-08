@@ -51,3 +51,5 @@ Source: [AM3352 SBC autorouted board, October 8, 2026](https://am3352-sbc-autoro
 Fetched source SHA-256: `36725097b67b289636d32d3edc60ff2906357ce9c445e3c66e33ee3389602e3c`.
 
 `am3352-segmented-trace.circuit.json` retains the complete, unmodified trace at original Circuit JSON index 10435 (`protected-earlier:buzz:grid:source_net_12:0`), projected to fixture index 0. All 309 route points and metadata are preserved; other board records are omitted. Route indices 31 → 308 form an 18.397 mm staircase with steps no longer than 0.1 mm. Each step is horizontal, vertical, or 45°, yet the overall direction is 247.938° (22.062° from the nearest allowed direction). This reproduces gaming both the per-segment length threshold and per-segment angle check.
+
+With effective-run analysis, the complete linked AM3352 board reports 44 errors at the default thresholds (the pairwise analyzer reported zero). The projected trace reproduces one of those errors. Existing fixture counts also change: PD power supply has 6 default errors and Corne keyboard has 51; their earlier counts above describe the pairwise baseline. Original routing and historical provenance are unchanged.

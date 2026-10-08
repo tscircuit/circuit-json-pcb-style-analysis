@@ -126,7 +126,9 @@ export function renderPcbStyleSvg(
   const highlights = getIssueHighlights(issues)
     .map(
       ({ issue: s, color }, i) =>
-        line(s, color, true) +
+        (s.constituentSegments ?? [s])
+          .map((part) => line(part, color, true))
+          .join("") +
         (individual
           ? '<circle cx="' +
             x(s.location.x) +

@@ -1,6 +1,7 @@
 import { BaseSolver } from "@tscircuit/solver-utils"
 import type { AnalysisContext, TraceSegment } from "../types"
 import { visualizeIssues } from "../visualize"
+import { buildTraceRuns } from "../trace-runs"
 export interface LongTraceSegmentParams {
   ctx: AnalysisContext
   maxSegmentLengthMm: number
@@ -9,6 +10,7 @@ export interface LongTraceSegmentParams {
 export class LongTraceSegmentSolver extends BaseSolver {
   segments: TraceSegment[] = []
   private nextSegment = 0
+  private candidates: TraceSegment[]
   constructor(public params: LongTraceSegmentParams) {
     super()
     if (
@@ -16,10 +18,11 @@ export class LongTraceSegmentSolver extends BaseSolver {
       params.maxSegmentLengthMm <= 0
     )
       throw new Error("maxSegmentLengthMm must be finite and positive")
-    this.MAX_ITERATIONS = params.ctx.segments.length + 2
+    this.candidates = buildTraceRuns(params.ctx)
+    this.MAX_ITERATIONS = this.candidates.length + 2
   }
   override _step() {
-    const segment = this.params.ctx.segments[this.nextSegment++]
+    const segment = this.candidates[this.nextSegment++]
     if (!segment) {
       this.solved = true
       this.progress = 1
@@ -27,7 +30,7 @@ export class LongTraceSegmentSolver extends BaseSolver {
     }
     if (segment.lengthMm > this.params.maxSegmentLengthMm)
       this.segments.push(segment)
-    this.progress = this.nextSegment / this.params.ctx.segments.length
+    this.progress = this.nextSegment / this.candidates.length
     this.stats = {
       segmentsChecked: this.nextSegment,
       candidateCount: this.segments.length,

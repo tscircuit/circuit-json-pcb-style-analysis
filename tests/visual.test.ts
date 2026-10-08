@@ -3,6 +3,8 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs"
 import { renderPcbStyleSvg } from "../lib/create-pcb-style-issue-artifacts"
 import { analyzePcbStyle } from "../lib"
 import { realBoards } from "./fixtures/real-boards"
+import type { CircuitJson } from "circuit-json"
+import am3352 from "./assets/am3352-segmented-trace.circuit.json"
 
 function snapshot(name: string, svg: string) {
   const path = new URL("./__snapshots__/" + name + ".snap.svg", import.meta.url)
@@ -10,6 +12,18 @@ function snapshot(name: string, svg: string) {
   expect(existsSync(path)).toBe(true)
   expect(svg).toBe(readFileSync(path, "utf8"))
 }
+
+test("visual: AM3352 staircase highlights original copper rather than its chord", () => {
+  const cj = am3352 as CircuitJson
+  const analysis = analyzePcbStyle(cj)
+  expect(analysis.issues).toHaveLength(1)
+  snapshot(
+    "am3352-segmented-trace-overview",
+    renderPcbStyleSvg(cj, analysis.issues, {
+      title: "AM3352 SBC — segmented odd-angle run",
+    }),
+  )
+})
 
 // Every drawing uses the complete routed board; no generated traces or isolated segment fixtures.
 for (const board of realBoards) {

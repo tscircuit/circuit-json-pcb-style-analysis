@@ -2,6 +2,8 @@
 
 Analyze a routed Circuit JSON file. A segment is flagged only when it is **longer than 5 mm AND more than 4° from a multiple of 45°**. Horizontal, vertical, and 45° traces pass regardless of length. Short segments at odd angles also pass.
 
+Length and angle checks also apply to **effective straight runs**. Adding intermediate points, numerical jitter, or tiny stair steps cannot hide a long odd-angle run. The analyzer simplifies connected copper within half the narrowest segment width, measures the resulting chord, and reports the original route range and constituent segments. SVGs highlight those original segments. Trace records, vias, layer changes, and pad interiors remain boundaries; substantial bends remain separate. Physical segment checks are retained so simplification cannot erase an existing error. Approximate runs include an angular uncertainty allowance of `atan2(2 × maximum centerline deviation, chord length)`; exactly collinear subdivisions use the original angle threshold.
+
 ## Install
 
 Install [Bun](https://bun.sh/docs/installation), then install the CLI from GitHub:
@@ -80,4 +82,4 @@ Try a real board included in the repository:
 bun lib/cli.ts tests/assets/pd-power-supply.circuit.json --svg /tmp/pd-style.svg
 ```
 
-This fixture has five errors at the default thresholds, all highlighted in the single SVG, and exits with code `1`.
+This fixture has six errors at the default thresholds, including a subdivided straight run, all highlighted in the single SVG, and exits with code `1`.

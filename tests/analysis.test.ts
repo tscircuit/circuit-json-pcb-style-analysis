@@ -33,7 +33,7 @@ for (const board of realBoards) {
         expect(trace.pcb_trace_id).toBe(issue.pcbTraceId)
         expect(issue.sourceTraceId).toBe(trace.source_trace_id)
         expect(issue.subcircuitId).toBe(trace.subcircuit_id)
-        expect(issue.endRouteIndex).toBe(issue.startRouteIndex + 1)
+        expect(issue.endRouteIndex).toBeGreaterThan(issue.startRouteIndex)
         const a = trace.route[issue.startRouteIndex]
         const b = trace.route[issue.endRouteIndex]
         const endpoint = (p: PcbTraceRoutePoint, outgoing: boolean) =>
@@ -187,7 +187,7 @@ test("Game Boy pipeline selects long candidates before angle analysis without ex
     const candidates = solver.getStageOutput<
       ReturnType<typeof buildAnalysisContext>["segments"]
     >("LongTraceSegmentSolver")!
-    expect(candidates).toHaveLength(217)
+    expect(candidates).toHaveLength(277)
     expect(candidates.every((s) => s.lengthMm > 5)).toBe(true)
     expect(solver.getOutput().issues).toEqual([])
     solver.solve()
@@ -222,7 +222,7 @@ test("Arduino Micro's inner-layer artifacts keep global issue indices and highli
     expect(artifact.issueIndex).toBe(analysis.issues.indexOf(artifact.issue))
     expect(artifact.bounds).toEqual(artifact.issue.bounds)
     expect(artifact.content.match(/<line[^>]*stroke="#ff5555"/g)).toHaveLength(
-      1,
+      artifact.issue.constituentSegments?.length ?? 1,
     )
     expect(artifact.descriptionXml).toContain(
       'pcbTraceId="' + artifact.issue.pcbTraceId + '"',
