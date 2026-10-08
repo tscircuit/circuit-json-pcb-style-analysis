@@ -50,5 +50,8 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "bin": {
+    "pcb-style-analysis": "./lib/cli.ts"
+  }
 }
