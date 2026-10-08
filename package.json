@@ -11,7 +11,8 @@
   ],
   "exports": {
     ".": "./lib/index.ts",
-    "./analysis": "./lib/analyze-pcb-style.ts"
+    "./analysis": "./lib/analyze-pcb-style.ts",
+    "./browser": "./dist/browser.js"
   },
   "repository": {
     "type": "git",
