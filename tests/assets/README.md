@@ -11,14 +11,14 @@ The source contains 145 PCB traces, routed with `AutoroutingPipelineSolver9_Prel
 
 The committed Circuit JSON preserves all trace IDs, coordinates, widths, wire points, and vias. SRJ `through_obstacle` is translated to Circuit JSON `through_pad` with `start/end`, `from_layer → start_layer`, and `to_layer → end_layer`. Connection names become source trace IDs. Board/connectivity/obstacle metadata are omitted; this fixture exercises routed copper.
 
-Default result: **320 odd-angle errors and 26 long-segment errors**. The odd-angle count agrees with the original linter.
+Default result: **190 odd-angle errors and 26 long-segment errors** at the default 4° tolerance. Explicitly selecting the original linter’s 0.1° tolerance produces 320 odd-angle errors.
 
 
 ## ABSE Game Boy 1.0.16 and USB-C flashlight
 
 These are unmodified native Circuit JSON fixtures from `tscircuit/circuit-to-svg`, pinned at commit `6c99c3f6eb78a75efc08163198892c7647a8189b`:
 
-- [ABSE Game Boy](https://github.com/tscircuit/circuit-to-svg/blob/6c99c3f6eb78a75efc08163198892c7647a8189b/tests/pcb/assets/abse-gameboy-1.0.16-pcb.json): 1,515 elements, 253 routed traces, 292 route vias; 217 long-segment errors and 414 odd-angle errors.
+- [ABSE Game Boy](https://github.com/tscircuit/circuit-to-svg/blob/6c99c3f6eb78a75efc08163198892c7647a8189b/tests/pcb/assets/abse-gameboy-1.0.16-pcb.json): 1,515 elements, 253 routed traces, 292 route vias; 217 long-segment errors and 266 odd-angle errors at the default 4° tolerance.
 - [USB-C flashlight](https://github.com/tscircuit/circuit-to-svg/blob/6c99c3f6eb78a75efc08163198892c7647a8189b/tests/pcb/assets/usb-c-flashlight-core-issue-680.json): 199 elements and 17 routed traces; four long-segment errors and zero odd-angle errors. Repeated GND trace IDs exercise issue disambiguation by Circuit JSON and route indices.
 
 Both fixtures retain all board/component/pad/trace elements and original routing coordinates. No routes are synthesized, altered, or simplified for testing.

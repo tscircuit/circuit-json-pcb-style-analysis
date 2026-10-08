@@ -41,7 +41,7 @@ export type PcbStyleIssueType = PcbStyleIssue["lineItemType"]
 export interface PcbStyleAnalysisOptions {
   /** Strictly greater than this length is an error; default 5 mm. */
   maxSegmentLengthMm?: number
-  /** Distance from a multiple of 45 degrees; default 0.1 degrees. */
+  /** Distance from a multiple of 45 degrees; default 4 degrees. */
   angleToleranceDegrees?: number
   issueTypes?: readonly PcbStyleIssueType[]
 }

@@ -8,13 +8,13 @@ export const realBoards = [
     id: "arduino-micro",
     name: "Arduino Micro",
     circuitJson: arduinoMicro as CircuitJson,
-    expected: { traces: 145, longSegments: 26, oddAngles: 320 },
+    expected: { traces: 145, longSegments: 26, oddAngles: 190 },
   },
   {
     id: "abse-gameboy",
     name: "ABSE Game Boy 1.0.16",
     circuitJson: gameboy as CircuitJson,
-    expected: { traces: 253, longSegments: 217, oddAngles: 414 },
+    expected: { traces: 253, longSegments: 217, oddAngles: 266 },
   },
   {
     id: "usb-c-flashlight",

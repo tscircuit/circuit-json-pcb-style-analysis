@@ -27,7 +27,7 @@ export class PcbStyleAnalysisPipeline extends BasePipelineSolver<CircuitJson> {
       (p: PcbStyleAnalysisPipeline) => [
         {
           ctx: p.ctx,
-          angleToleranceDegrees: p.options.angleToleranceDegrees ?? 0.1,
+          angleToleranceDegrees: p.options.angleToleranceDegrees ?? 4,
         },
       ],
     ),

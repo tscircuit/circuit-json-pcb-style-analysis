@@ -112,9 +112,32 @@ test("USB-C flashlight's repeated GND trace IDs still select four distinct long 
   expect(svg).not.toContain('stroke="#ff5555"')
 })
 
-test("Game Boy's near-horizontal source_trace_141_0 emits both errors for the same original segment", () => {
-  const issues = analyzePcbStyle(realBoards[1].circuitJson).issues.filter(
-    (i) => i.circuitJsonIndex === 933 && i.startRouteIndex === 7,
+test("Game Boy's near-horizontal source_trace_141_0 is accepted at 4° but configurable strict analysis flags it", () => {
+  const cj = realBoards[1].circuitJson
+  const selectSegment = (
+    issues: ReturnType<typeof analyzePcbStyle>["issues"],
+  ) =>
+    issues.filter((i) => i.circuitJsonIndex === 933 && i.startRouteIndex === 7)
+  const defaultAnalysis = analyzePcbStyle(cj)
+  const defaultIssues = selectSegment(defaultAnalysis.issues)
+  expect(defaultIssues.map((i) => i.lineItemType)).toEqual([
+    "PcbTraceSegmentTooLong",
+  ])
+  expect(
+    renderPcbStyleSvg(cj, defaultIssues).match(/<line[^>]*stroke="#f59e0b"/g),
+  ).toHaveLength(1)
+  const defaultOddAngles = defaultAnalysis.issues.filter(
+    (i) => i.lineItemType === "PcbTraceSegmentOddAngle",
+  )
+  expect(defaultOddAngles.length).toBeGreaterThan(0)
+  for (const issue of defaultOddAngles) {
+    if (issue.lineItemType === "PcbTraceSegmentOddAngle") {
+      expect(issue.angleToleranceDegrees).toBe(4)
+      expect(issue.deviationDegrees).toBeGreaterThan(4)
+    }
+  }
+  const issues = selectSegment(
+    analyzePcbStyle(cj, { angleToleranceDegrees: 0.1 }).issues,
   )
   expect(issues.map((i) => i.lineItemType)).toEqual([
     "PcbTraceSegmentTooLong",
@@ -154,7 +177,7 @@ test("Game Boy analysis can pause between stages, and selecting a rule produces 
   ).toBe(true)
   solver.solve()
   const { issues } = solver.getOutput()
-  expect(issues).toHaveLength(631)
+  expect(issues).toHaveLength(483)
   for (const type of [
     "PcbTraceSegmentTooLong",
     "PcbTraceSegmentOddAngle",

@@ -26,7 +26,7 @@ console.log(solver.getOutput().issues)
 ## Rules
 
 - `LongTraceSegmentSolver` emits `PcbTraceSegmentTooLong` when a planar segment is **strictly longer than 5 mm**. Length is Euclidean distance between adjacent route endpoints, not the sum of the whole trace. Exactly 5 mm passes.
-- `OddAngleTraceSegmentSolver` emits `PcbTraceSegmentOddAngle` when the segment's absolute direction differs from the nearest multiple of 45° by more than **0.1°**. Direction reversal and the 360° wraparound work in every quadrant.
+- `OddAngleTraceSegmentSolver` emits `PcbTraceSegmentOddAngle` when the segment's absolute direction differs from the nearest multiple of 45° by more than **4°**. Direction reversal and the 360° wraparound work in every quadrant.
 
 Both rules run independently: a long segment at an odd angle produces two errors. Thresholds are configurable through `maxSegmentLengthMm` and `angleToleranceDegrees`. Restrict stages using `issueTypes`; an empty array disables all stages.
 
@@ -56,7 +56,7 @@ Visual regression tests commit **one overview snapshot per real board**: Arduino
 
 The library still supports generating an artifact for every individual issue through `createPcbStyleIssueArtifacts`; this capability is exercised by the real-board artifact regression tests without committing a separate snapshot for every error.
 
-The regression tests exercise complete boards and verify that emitted issues select the original copper and retain original route indices and metadata. They cover the Game Boy's 292 vias and duplicated coordinates at layer transitions, repeated GND trace IDs on the flashlight, two independent errors on one Game Boy segment, pipeline stage isolation, and artifact filtering on Arduino Micro's inner layers. The flashlight provides real horizontal/vertical/45° routes with zero odd-angle errors.
+The regression tests exercise complete boards and verify that emitted issues select the original copper and retain original route indices and metadata. They cover the Game Boy's 292 vias and duplicated coordinates at layer transitions, repeated GND trace IDs on the flashlight, configurable tolerance on one Game Boy segment, pipeline stage isolation, and artifact filtering on Arduino Micro's inner layers. The flashlight provides real horizontal/vertical/45° routes with zero odd-angle errors.
 
 The gallery lets you select a real board and layer; each board also has its own step-by-step debugger. See [fixture provenance](tests/assets/README.md) for pinned upstream sources.
 ```sh
@@ -86,7 +86,7 @@ A **Run Style Analysis** right-click action can load the module on demand, show 
 
 ## Existing work and provenance
 
-[tscircuit/pcb-trace-linter](https://github.com/tscircuit/pcb-trace-linter) already implements odd-angle analysis over SRJ/Circuit JSON, a solver debugger, and per-issue snapshots. This repo follows its angle/tolerance and segment-adjacency conventions, adding independent long-segment analysis with a Circuit JSON native implementation that avoids loading core's renderer/conversion stack.
+[tscircuit/pcb-trace-linter](https://github.com/tscircuit/pcb-trace-linter) already implements odd-angle analysis over SRJ/Circuit JSON, a solver debugger, and per-issue snapshots. This repo follows its multiples-of-45° and segment-adjacency conventions, with a more forgiving default tolerance of 4°, adding independent long-segment analysis with a Circuit JSON native implementation that avoids loading core's renderer/conversion stack.
 
 The schematic reference is [tscircuit/circuit-json-schematic-placement-analysis](https://github.com/tscircuit/circuit-json-schematic-placement-analysis) (without "to"). Its one-rule-per-stage pipeline, typed issues, browser entry, and artifact interface informed this package. [circuit-json-routing-analysis](https://github.com/tscircuit/circuit-json-routing-analysis) addresses routing capacity/congestion rather than these style checks.
 
