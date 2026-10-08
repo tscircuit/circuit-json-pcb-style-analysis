@@ -17,10 +17,24 @@ permissions:
   pull-requests: write
 
 jobs:
+  release-check:
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.check.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        env:
+          MANUAL_RELEASE: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          if [ "$MANUAL_RELEASE" = "true" ] || ! git log -1 --pretty=%s | grep -Eq '^(chore: bump version|v[0-9]+\.[0-9]+\.[0-9]+($|[[:space:]]))'; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          fi
   publish:
-    # A version-bump merge must not start another release.
-    if: >-
-      github.event_name == 'workflow_dispatch' || !startsWith(github.event.head_commit.message, 'chore: bump version')
+    needs: release-check
+    if: needs.release-check.outputs.publish == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -62,6 +76,6 @@ jobs:
           author: tscircuitbot <githubbot@tscircuit.com>
       - name: Enable version-bump auto-merge
         if: steps.create-pr.outputs.pull-request-number != ''
-        run: gh pr merge ${{ steps.create-pr.outputs.pull-request-number }} --auto --squash --delete-branch
+        run: gh pr merge ${{ steps.create-pr.outputs.pull-request-number }} --auto --squash --delete-branch --subject "chore: bump version to v${{ steps.package-version.outputs.version }}"
         env:
           GH_TOKEN: ${{ secrets.TSCIRCUIT_BOT_GITHUB_TOKEN }}
