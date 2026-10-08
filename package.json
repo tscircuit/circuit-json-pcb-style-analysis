@@ -1,0 +1,54 @@
+{
+  "name": "@tscircuit/circuit-json-pcb-style-analysis",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "lib/index.ts",
+  "module": "lib/index.ts",
+  "types": "lib/index.ts",
+  "files": [
+    "lib",
+    "dist"
+  ],
+  "exports": {
+    ".": "./lib/index.ts",
+    "./analysis": "./lib/analyze-pcb-style.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tscircuit/circuit-json-pcb-style-analysis.git"
+  },
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "start": "cosmos",
+    "build:site": "cosmos-export",
+    "build": "bun build lib/browser.ts --target browser --format esm --minify --outfile dist/browser.js",
+    "prepack": "bun run build"
+  },
+  "dependencies": {
+    "@tscircuit/solver-utils": "0.0.21",
+    "graphics-debug": "0.0.94"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.12",
+    "@types/bun": "1.4.2",
+    "@types/react": "19.1.13",
+    "circuit-json": "0.0.516",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "react-cosmos": "7.0.0",
+    "react-cosmos-plugin-vite": "7.0.0",
+    "typescript": "5.9.3",
+    "vite": "7.3.6"
+  },
+  "peerDependencies": {
+    "circuit-json": "*",
+    "typescript": "^5"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "license": "MIT"
+}
