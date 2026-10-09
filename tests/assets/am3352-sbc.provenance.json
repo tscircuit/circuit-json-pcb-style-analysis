@@ -1,0 +1,9 @@
+{
+  "sourceUrl": "https://am3352-sbc-autorouted-20261008.seveibar.chatgpt.site/am3352-sbc/circuit.json",
+  "viewerUrl": "https://am3352-sbc-autorouted-20261008.seveibar.chatgpt.site/#file=am3352-sbc.circuit.json",
+  "sourceSha256": "36725097b67b289636d32d3edc60ff2906357ce9c445e3c66e33ee3389602e3c",
+  "fixture": "am3352-sbc.circuit.json.gz",
+  "encoding": "gzip; uncompressed bytes match the complete source Circuit JSON",
+  "sourceCircuitJsonElements": 12349,
+  "sourcePcbTraces": 989
+}
