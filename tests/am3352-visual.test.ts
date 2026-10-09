@@ -17,11 +17,17 @@ test("visual: complete AM3352 board shows the detected issue count and highlight
   )
   const cj = JSON.parse(bytes.toString()) as CircuitJson
   const analysis = analyzePcbStyle(cj)
-  expect(analysis.issues).toHaveLength(0)
+  expect(analysis.issues).toHaveLength(44)
   const svg = renderPcbStyleSvg(cj, analysis.issues, {
     title: `AM3352 SBC — ${analysis.issues.length} issues detected`,
   })
   expect(svg).toContain(`${analysis.issues.length} issues detected`)
+  expect(svg.match(/<line[^>]*stroke="#ff5555"/g)).toHaveLength(
+    analysis.issues.reduce(
+      (n, issue) => n + (issue.constituentSegments?.length ?? 1),
+      0,
+    ),
+  )
   const path = new URL(
     "./__snapshots__/am3352-sbc-overview.snap.svg",
     import.meta.url,

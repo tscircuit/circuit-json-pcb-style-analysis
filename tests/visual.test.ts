@@ -20,7 +20,7 @@ test("visual: AM3352 staircase highlights original copper rather than its chord"
   snapshot(
     "am3352-segmented-trace-overview",
     renderPcbStyleSvg(cj, analysis.issues, {
-      title: "AM3352 SBC — segmented odd-angle run",
+      title: `AM3352 SBC — segmented run — ${analysis.issues.length} issue detected`,
     }),
   )
 })
