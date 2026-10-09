@@ -2,16 +2,24 @@
   "name": "@tscircuit/circuit-json-pcb-style-analysis",
   "version": "0.0.5",
   "type": "module",
-  "main": "lib/index.ts",
-  "module": "lib/index.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "lib/index.ts",
   "files": [
     "lib",
     "dist"
   ],
   "exports": {
-    ".": "./lib/index.ts",
-    "./analysis": "./lib/analyze-pcb-style.ts",
+    ".": {
+      "types": "./lib/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./analysis": {
+      "types": "./lib/analyze-pcb-style.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
     "./browser": "./dist/browser.js"
   },
   "repository": {
@@ -25,8 +33,9 @@
     "format:check": "biome format .",
     "start": "cosmos",
     "build:site": "cosmos-export",
-    "build": "bun build lib/browser.ts --target browser --format esm --minify --outfile dist/browser.js",
-    "prepack": "bun run build"
+    "build": "bun build lib/index.ts lib/browser.ts --target browser --format esm --minify --outdir dist",
+    "prepack": "bun run build",
+    "check:package": "node scripts/check-package.mjs"
   },
   "dependencies": {
     "@tscircuit/solver-utils": "0.0.21",
