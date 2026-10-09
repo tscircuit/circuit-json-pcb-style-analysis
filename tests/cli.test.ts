@@ -23,7 +23,7 @@ test("CLI writes clean JSON and one combined PD-board SVG even when style issues
   const result = run(pd, "--json", "--svg", svg)
   expect(result.status).toBe(1)
   const output = JSON.parse(result.stdout)
-  expect(output.issues).toHaveLength(5)
+  expect(output.issues).toHaveLength(6)
   expect(output.issues[0]).toMatchObject({
     issueId: "odd-angle:4:4",
     pcbTraceId: "pcb_trace_3",
@@ -39,11 +39,11 @@ test("CLI writes clean JSON and one combined PD-board SVG even when style issues
   expect(result.stderr).toContain("Saved overview to")
   expect(
     readFileSync(svg, "utf8").match(/<line[^>]*stroke="#ff5555"/g),
-  ).toHaveLength(5)
+  ).toHaveLength(7)
   expect(readFileSync(pd, "utf8")).toBe(original)
   const text = run(pd)
   expect(text.status).toBe(1)
-  expect(text.stdout).toContain("5 style issue(s)")
+  expect(text.stdout).toContain("6 style issue(s)")
   expect(text.stdout).toContain("Circuit JSON index 4, route 4 → 5")
   expect(text.stdout).toContain("(5, 20.5) → (17, 18) mm")
 })

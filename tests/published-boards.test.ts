@@ -22,18 +22,27 @@ for (const source of provenance) {
         board.circuitJson.length,
       )
       const analysis = analyzePcbStyle(board.circuitJson)
-      expect(
-        analysis.issues.map((i) => ({
-          sourceCircuitJsonIndex:
-            source.sourceCircuitJsonIndices[i.circuitJsonIndex],
-          startRouteIndex: i.startRouteIndex,
-          endRouteIndex: i.endRouteIndex,
-          pcbTraceId: i.pcbTraceId,
-          layer: i.layer,
-          lengthMm: i.lengthMm,
-          deviationDegrees: i.deviationDegrees,
-        })),
-      ).toEqual(source.expectedIssues)
+      expect(analysis.issues).toHaveLength(board.expected.issues)
+      // The recorded source results used pairwise segments. Every old finding
+      // remains represented, either alone or inside a larger effective run.
+      for (const expected of source.expectedIssues) {
+        const issue = analysis.issues.find(
+          (i) =>
+            source.sourceCircuitJsonIndices[i.circuitJsonIndex] ===
+              expected.sourceCircuitJsonIndex &&
+            i.pcbTraceId === expected.pcbTraceId &&
+            i.layer === expected.layer &&
+            i.startRouteIndex <= expected.startRouteIndex &&
+            i.endRouteIndex >= expected.endRouteIndex,
+        )
+        expect(issue).toBeDefined()
+        const segment =
+          issue!.constituentSegments?.find(
+            (s) => s.startRouteIndex === expected.startRouteIndex,
+          ) ?? issue!
+        expect(segment.endRouteIndex).toBe(expected.endRouteIndex)
+        expect(segment.lengthMm).toBeCloseTo(expected.lengthMm, 10)
+      }
       expect(analysis.issues.length).toBeGreaterThan(0)
       for (const issue of analysis.issues) {
         expect(issue.lengthMm).toBeGreaterThan(5)
@@ -43,7 +52,10 @@ for (const source of provenance) {
       }
       const svg = renderPcbStyleSvg(board.circuitJson, analysis.issues)
       expect(svg.match(/<line[^>]*stroke="#ff5555"/g)).toHaveLength(
-        analysis.issues.length,
+        analysis.issues.reduce(
+          (n, i) => n + (i.constituentSegments?.length ?? 1),
+          0,
+        ),
       )
     },
   )

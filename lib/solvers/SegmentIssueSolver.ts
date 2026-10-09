@@ -10,7 +10,33 @@ export function locateIssue(
   segment: TraceSegment,
   rule: string,
 ): LocatedPcbStyleIssue {
-  const { start, end, width } = segment
+  const { start, end } = segment
+  const parts = segment.constituentSegments ?? [segment]
+  const bounds = parts.reduce(
+    (bounds, s) => ({
+      minX: Math.min(
+        bounds.minX,
+        s.start.x - s.width / 2,
+        s.end.x - s.width / 2,
+      ),
+      minY: Math.min(
+        bounds.minY,
+        s.start.y - s.width / 2,
+        s.end.y - s.width / 2,
+      ),
+      maxX: Math.max(
+        bounds.maxX,
+        s.start.x + s.width / 2,
+        s.end.x + s.width / 2,
+      ),
+      maxY: Math.max(
+        bounds.maxY,
+        s.start.y + s.width / 2,
+        s.end.y + s.width / 2,
+      ),
+    }),
+    { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity },
+  )
   return {
     ...segment,
     issueId:
@@ -18,12 +44,7 @@ export function locateIssue(
     severity: "error",
     message: "",
     location: { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 },
-    bounds: {
-      minX: Math.min(start.x, end.x) - width / 2,
-      minY: Math.min(start.y, end.y) - width / 2,
-      maxX: Math.max(start.x, end.x) + width / 2,
-      maxY: Math.max(start.y, end.y) + width / 2,
-    },
+    bounds,
   }
 }
 /** One segment per step keeps the debugger responsive and inspectable. */

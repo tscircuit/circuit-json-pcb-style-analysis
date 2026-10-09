@@ -16,6 +16,10 @@ export interface TraceSegment {
   end: Point
   width: number
   lengthMm: number
+  /** Original copper segments represented by an effective straight run. */
+  constituentSegments?: TraceSegment[]
+  /** Maximum centerline distance to the run's measurement chord. */
+  maxCenterlineDeviationMm?: number
 }
 export interface LocatedPcbStyleIssue extends TraceSegment {
   issueId: string
@@ -33,11 +37,13 @@ export interface PcbTraceSegmentOddAngle extends LocatedPcbStyleIssue {
   nearestAllowedAngleDegrees: number
   deviationDegrees: number
   angleToleranceDegrees: number
+  /** Extra allowance for a run's geometric approximation; absent on physical segments. */
+  angleUncertaintyDegrees?: number
 }
 export type PcbStyleIssue = PcbTraceSegmentOddAngle
 export type PcbStyleIssueType = PcbStyleIssue["lineItemType"]
 export interface PcbStyleAnalysisOptions {
-  /** Only segments strictly longer than this are checked for odd angles; default 5 mm. */
+  /** Only physical segments or effective straight runs strictly longer than this are checked; default 5 mm. */
   maxSegmentLengthMm?: number
   /** Distance from a multiple of 45 degrees; default 4 degrees. */
   angleToleranceDegrees?: number

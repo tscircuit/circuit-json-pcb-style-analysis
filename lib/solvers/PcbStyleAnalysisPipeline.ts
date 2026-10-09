@@ -51,7 +51,7 @@ export class PcbStyleAnalysisPipeline extends BasePipelineSolver<CircuitJson> {
     )
       this.pipelineDef = []
     this.MAX_ITERATIONS = circuitJson.reduce(
-      (n, e) => n + (e.type === "pcb_trace" ? e.route.length * 2 : 0),
+      (n, e) => n + (e.type === "pcb_trace" ? e.route.length * 4 : 0),
       10,
     )
   }
