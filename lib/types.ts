@@ -40,7 +40,16 @@ export interface PcbTraceSegmentOddAngle extends LocatedPcbStyleIssue {
   /** Extra allowance for a run's geometric approximation; absent on physical segments. */
   angleUncertaintyDegrees?: number
 }
-export type PcbStyleIssue = PcbTraceSegmentOddAngle
+export interface PcbTraceStaircase extends LocatedPcbStyleIssue {
+  lineItemType: "PcbTraceStaircase"
+  /** Length along the original copper, rather than the endpoint chord. */
+  lengthMm: number
+  bendCount: number
+  minStaircaseBends: number
+  minStaircaseLengthMm: number
+  maxStairStepLengthMm: number
+}
+export type PcbStyleIssue = PcbTraceSegmentOddAngle | PcbTraceStaircase
 export type PcbStyleIssueType = PcbStyleIssue["lineItemType"]
 export interface PcbStyleAnalysisOptions {
   /** Only physical segments or effective straight runs strictly longer than this are checked; default 5 mm. */
@@ -48,6 +57,12 @@ export interface PcbStyleAnalysisOptions {
   /** Distance from a multiple of 45 degrees; default 4 degrees. */
   angleToleranceDegrees?: number
   issueTypes?: readonly PcbStyleIssueType[]
+  /** Minimum alternating bends in a staircase; default 6. */
+  minStaircaseBends?: number
+  /** Minimum staircase copper length in mm; default 2. */
+  minStaircaseLengthMm?: number
+  /** Maximum length of a step after merging co-directed pieces; default 1 mm. */
+  maxStairStepLengthMm?: number
 }
 export interface AnalysisContext {
   circuitJson: CircuitJson

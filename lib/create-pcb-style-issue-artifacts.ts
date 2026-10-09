@@ -171,7 +171,7 @@ export function renderPcbStyleSvg(
           issues[0].endRouteIndex,
       ]
     : [
-        "Red: segments exceeding both length and angle thresholds",
+        "Red: PCB traces with detected style issues",
         "Coordinates in millimeters; Y points upward. " +
           issues.length +
           " located errors.",
@@ -208,6 +208,9 @@ export function createPcbStyleIssueArtifacts(
     analyzePcbStyle(circuitJson, {
       maxSegmentLengthMm: options.maxSegmentLengthMm,
       angleToleranceDegrees: options.angleToleranceDegrees,
+      minStaircaseBends: options.minStaircaseBends,
+      minStaircaseLengthMm: options.minStaircaseLengthMm,
+      maxStairStepLengthMm: options.maxStairStepLengthMm,
     })
   return analysis.issues.flatMap((issue, issueIndex) => {
     if (options.layer && issue.layer !== options.layer) return []

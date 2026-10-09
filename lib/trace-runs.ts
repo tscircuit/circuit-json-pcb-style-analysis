@@ -56,6 +56,16 @@ export function buildTraceRuns(ctx: AnalysisContext): TraceSegment[] {
       })
     }
   }
+  for (const connected of getConnectedTraceSegments(ctx)) simplify(connected)
+  // Keep physical candidates too: approximation must never hide an existing error.
+  return [...ctx.segments, ...runs]
+}
+
+/** Physical wire chains, separated by trace records, vias, pads, and layer changes. */
+export function getConnectedTraceSegments(
+  ctx: AnalysisContext,
+): TraceSegment[][] {
+  const chains: TraceSegment[][] = []
   let connected: TraceSegment[] = []
   for (const segment of ctx.segments) {
     const previous = connected.at(-1)
@@ -81,13 +91,12 @@ export function buildTraceRuns(ctx: AnalysisContext): TraceSegment[] {
           previous.end.y - segment.start.y,
         ) > 1e-9
       ) {
-        simplify(connected)
+        chains.push(connected)
         connected = []
       }
     }
     connected.push(segment)
   }
-  if (connected.length) simplify(connected)
-  // Keep physical candidates too: approximation must never hide an existing error.
-  return [...ctx.segments, ...runs]
+  if (connected.length) chains.push(connected)
+  return chains
 }

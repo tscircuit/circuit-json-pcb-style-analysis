@@ -16,7 +16,9 @@ test("visual: complete AM3352 board shows the detected issue count and highlight
     "36725097b67b289636d32d3edc60ff2906357ce9c445e3c66e33ee3389602e3c",
   )
   const cj = JSON.parse(bytes.toString()) as CircuitJson
-  const analysis = analyzePcbStyle(cj)
+  const analysis = analyzePcbStyle(cj, {
+    issueTypes: ["PcbTraceSegmentOddAngle"],
+  })
   expect(analysis.issues).toHaveLength(44)
   const svg = renderPcbStyleSvg(cj, analysis.issues, {
     title: `AM3352 SBC — ${analysis.issues.length} issues detected`,

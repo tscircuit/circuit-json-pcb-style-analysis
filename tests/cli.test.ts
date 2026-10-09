@@ -23,7 +23,7 @@ test("CLI writes clean JSON and one combined PD-board SVG even when style issues
   const result = run(pd, "--json", "--svg", svg)
   expect(result.status).toBe(1)
   const output = JSON.parse(result.stdout)
-  expect(output.issues).toHaveLength(6)
+  expect(output.issues).toHaveLength(8)
   expect(output.issues[0]).toMatchObject({
     issueId: "odd-angle:4:4",
     pcbTraceId: "pcb_trace_3",
@@ -39,11 +39,17 @@ test("CLI writes clean JSON and one combined PD-board SVG even when style issues
   expect(result.stderr).toContain("Saved overview to")
   expect(
     readFileSync(svg, "utf8").match(/<line[^>]*stroke="#ff5555"/g),
-  ).toHaveLength(7)
+  ).toHaveLength(
+    output.issues.reduce(
+      (n: number, i: { constituentSegments?: unknown[] }) =>
+        n + (i.constituentSegments?.length ?? 1),
+      0,
+    ),
+  )
   expect(readFileSync(pd, "utf8")).toBe(original)
   const text = run(pd)
   expect(text.status).toBe(1)
-  expect(text.stdout).toContain("6 style issue(s)")
+  expect(text.stdout).toContain("8 style issue(s)")
   expect(text.stdout).toContain("Circuit JSON index 4, route 4 → 5")
   expect(text.stdout).toContain("(5, 20.5) → (17, 18) mm")
 })
@@ -61,6 +67,8 @@ test("CLI accepts the real flashlight and applies configurable thresholds to the
     "20",
     "--angle-tolerance",
     "6",
+    "--issue-type",
+    "odd-angle",
   )
   expect(relaxed.status).toBe(0)
   expect(JSON.parse(relaxed.stdout)).toEqual({ issues: [] })
@@ -77,6 +85,10 @@ test("CLI reports argument errors separately and refuses to replace the input wi
     [pd, "--max-segment-length", "NaN"],
     [pd, "--max-segment-length", "0"],
     [pd, "--angle-tolerance", "22.5"],
+    [pd, "--issue-type", "unknown"],
+    [pd, "--min-staircase-bends", "1"],
+    [pd, "--min-staircase-length", "0"],
+    [pd, "--max-stair-step-length", "-1"],
     [pd, "--svg", pd],
   ]) {
     const result = run(...args)
@@ -101,4 +113,26 @@ test("CLI rejects unreadable files, malformed JSON, and non-array input without 
     expect(result.stdout).toBe("")
     expect(result.stderr).toContain("pcb-style-analysis:")
   }
+})
+
+test("CLI selects the staircase rule and applies its independent thresholds", () => {
+  const result = run(pd, "--json", "--issue-type", "staircase")
+  expect(result.status).toBe(1)
+  const issues = JSON.parse(result.stdout).issues
+  expect(issues).toHaveLength(2)
+  expect(
+    issues.every(
+      (i: { lineItemType: string }) => i.lineItemType === "PcbTraceStaircase",
+    ),
+  ).toBe(true)
+  const disabled = run(
+    pd,
+    "--json",
+    "--issue-type",
+    "staircase",
+    "--min-staircase-bends",
+    "10000",
+  )
+  expect(disabled.status).toBe(0)
+  expect(JSON.parse(disabled.stdout).issues).toEqual([])
 })

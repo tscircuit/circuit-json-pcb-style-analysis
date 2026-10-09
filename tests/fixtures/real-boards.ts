@@ -30,19 +30,19 @@ export const realBoards = [
     id: "rc-car-controller",
     name: "RC car controller",
     circuitJson: rcCar as CircuitJson,
-    expected: { traces: 94, candidates: 78, issues: 2, strictIssues: 4 },
+    expected: { traces: 94, candidates: 78, issues: 3, strictIssues: 5 },
   },
   {
     id: "pd-power-supply",
     name: "PD power supply",
     circuitJson: pdPowerSupply as CircuitJson,
-    expected: { traces: 219, candidates: 105, issues: 6, strictIssues: 24 },
+    expected: { traces: 219, candidates: 105, issues: 8, strictIssues: 26 },
   },
   {
     id: "corne-keyboard",
     name: "Corne keyboard",
     circuitJson: corneKeyboard as CircuitJson,
-    expected: { traces: 437, candidates: 528, issues: 51, strictIssues: 168 },
+    expected: { traces: 437, candidates: 528, issues: 100, strictIssues: 217 },
   },
   {
     id: "nema34-controller",

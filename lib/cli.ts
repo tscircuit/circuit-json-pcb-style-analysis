@@ -8,13 +8,17 @@ import { renderPcbStyleSvg } from "./create-pcb-style-issue-artifacts"
 
 const usage = `Usage: pcb-style-analysis <circuit.json> [options]
 
-Flag segments longer than 5 mm AND more than 4° from a multiple of 45°.
+Flag long odd-angle runs and repetitive staircase routing.
 
 Options:
   --json                         Print the analysis as JSON
   --svg <file.svg>                Save one overview with all errors highlighted
   --max-segment-length <mm>       Length threshold (default: 5; must be positive)
   --angle-tolerance <degrees>     Angle tolerance (default: 4; range: [0, 22.5))
+  --issue-type <rule>             Select odd-angle or staircase (default: both)
+  --min-staircase-bends <count>    Minimum alternating bends (default: 6)
+  --min-staircase-length <mm>      Minimum staircase length (default: 2)
+  --max-stair-step-length <mm>     Maximum merged step length (default: 1)
   -h, --help                     Show this help
 
 Exit codes: 0 = no issues; 1 = style issues found; 2 = input or command error.
@@ -38,6 +42,10 @@ async function main() {
       svg: { type: "string" },
       "max-segment-length": { type: "string" },
       "angle-tolerance": { type: "string" },
+      "issue-type": { type: "string" },
+      "min-staircase-bends": { type: "string" },
+      "min-staircase-length": { type: "string" },
+      "max-stair-step-length": { type: "string" },
     },
   })
   if (values.help) {
@@ -85,9 +93,35 @@ async function main() {
       "Expected a Circuit JSON array of elements; pcb_trace elements need pcb_trace_id and route",
     )
   const circuitJson = input as CircuitJson
+  if (
+    values["issue-type"] &&
+    !["odd-angle", "staircase"].includes(values["issue-type"])
+  )
+    throw new Error("--issue-type must be odd-angle or staircase")
   const analysis = analyzePcbStyle(circuitJson, {
     maxSegmentLengthMm,
     angleToleranceDegrees,
+    issueTypes:
+      values["issue-type"] === "odd-angle"
+        ? ["PcbTraceSegmentOddAngle"]
+        : values["issue-type"] === "staircase"
+          ? ["PcbTraceStaircase"]
+          : undefined,
+    minStaircaseBends: threshold(
+      values["min-staircase-bends"],
+      6,
+      "--min-staircase-bends",
+    ),
+    minStaircaseLengthMm: threshold(
+      values["min-staircase-length"],
+      2,
+      "--min-staircase-length",
+    ),
+    maxStairStepLengthMm: threshold(
+      values["max-stair-step-length"],
+      1,
+      "--max-stair-step-length",
+    ),
   })
   if (values.svg) {
     await writeFile(values.svg, renderPcbStyleSvg(circuitJson, analysis.issues))

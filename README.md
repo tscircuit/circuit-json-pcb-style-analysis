@@ -1,8 +1,10 @@
 # PCB style analysis CLI
 
-Analyze a routed Circuit JSON file. A segment is flagged only when it is **longer than 5 mm AND more than 4° from a multiple of 45°**. Horizontal, vertical, and 45° traces pass regardless of length. Short segments at odd angles also pass.
+Analyze a routed Circuit JSON file for long odd-angle runs and repetitive staircases. The odd-angle rule flags copper **longer than 5 mm AND more than 4° from a multiple of 45°**. The staircase rule independently flags repeated alternating bends, including when every individual step uses an allowed angle.
 
 Length and angle checks also apply to **effective straight runs**. Adding intermediate points, numerical jitter, or tiny stair steps cannot hide a long odd-angle run. The analyzer simplifies connected copper within half the narrowest segment width, measures the resulting chord, and reports the original route range and constituent segments. SVGs highlight those original segments. Trace records, vias, layer changes, and pad interiors remain boundaries; substantial bends remain separate. Physical segment checks are retained so simplification cannot erase an existing error. Approximate runs include an angular uncertainty allowance of `atan2(2 × maximum centerline deviation, chord length)`; exactly collinear subdivisions use the original angle threshold.
+
+`PcbTraceStaircase` findings require at least **6 alternating bends over 2 mm of copper**, between two consistent forward headings 15°–90° apart. Headings match within 4°. Each step must be at most **1 mm after merging co-directed pieces**. Thus subdividing a long step cannot fabricate a staircase or bypass its step-length limit. This rule does not depend on absolute angle, the odd-angle thresholds, or trace width. Ordinary corners, smooth arcs, and backtracking length-tuning meanders do not match this pattern. These findings describe routing style; a replacement route still requires clearance checks.
 
 ## Install
 
@@ -59,6 +61,15 @@ pcb-style-analysis board.circuit.json --max-segment-length 10 --angle-tolerance 
 
 This flags only segments longer than 10 mm **and** more than 6° from a multiple of 45°. The length threshold must be positive; angle tolerance must be at least 0° and less than 22.5°. A segment exactly at either threshold passes.
 
+Staircase findings remain enabled when relaxing the odd-angle thresholds. Select a single rule or adjust the staircase thresholds:
+
+```sh
+pcb-style-analysis board.circuit.json --issue-type odd-angle
+pcb-style-analysis board.circuit.json --issue-type staircase --min-staircase-bends 8 --min-staircase-length 3 --max-stair-step-length 0.5
+```
+
+Library callers can select `issueTypes: ["PcbTraceStaircase"]` and set `minStaircaseBends`, `minStaircaseLengthMm`, and `maxStairStepLengthMm`. An empty `issueTypes` array disables all rules.
+
 ## Exit codes
 
 | Code | Meaning |
@@ -82,4 +93,4 @@ Try a real board included in the repository:
 bun lib/cli.ts tests/assets/pd-power-supply.circuit.json --svg /tmp/pd-style.svg
 ```
 
-This fixture has six errors at the default thresholds, including a subdivided straight run, all highlighted in the single SVG, and exits with code `1`.
+This fixture has eight errors at the default thresholds: six odd-angle findings and two staircases, all highlighted in the single SVG. It exits with code `1`.

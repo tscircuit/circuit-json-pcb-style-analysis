@@ -1,0 +1,8 @@
+{
+  "sourceUrl": "https://am3352-sbc-autorouted-20261008.seveibar.chatgpt.site/am3352-sbc/circuit.json",
+  "sourceSha256": "d6ae4525b451cdcfce0c82b3423b2a2c035e8a8fb36f888033b645100cce24c5",
+  "fixture": "am3352-staircase-board.circuit.json.gz",
+  "encoding": "gzip; uncompressed bytes match the complete latest source Circuit JSON",
+  "sourceCircuitJsonElements": 12345,
+  "sourcePcbTraces": 997
+}

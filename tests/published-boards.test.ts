@@ -45,10 +45,15 @@ for (const source of provenance) {
       }
       expect(analysis.issues.length).toBeGreaterThan(0)
       for (const issue of analysis.issues) {
-        expect(issue.lengthMm).toBeGreaterThan(5)
-        expect(issue.deviationDegrees).toBeGreaterThan(4)
-        expect(issue.maxSegmentLengthMm).toBe(5)
-        expect(issue.angleToleranceDegrees).toBe(4)
+        if (issue.lineItemType === "PcbTraceSegmentOddAngle") {
+          expect(issue.lengthMm).toBeGreaterThan(5)
+          expect(issue.deviationDegrees).toBeGreaterThan(4)
+          expect(issue.maxSegmentLengthMm).toBe(5)
+          expect(issue.angleToleranceDegrees).toBe(4)
+        } else {
+          expect(issue.lengthMm).toBeGreaterThanOrEqual(2 - 1e-9)
+          expect(issue.bendCount).toBeGreaterThanOrEqual(6)
+        }
       }
       const svg = renderPcbStyleSvg(board.circuitJson, analysis.issues)
       expect(svg.match(/<line[^>]*stroke="#ff5555"/g)).toHaveLength(
