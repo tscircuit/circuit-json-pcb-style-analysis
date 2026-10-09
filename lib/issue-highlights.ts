@@ -1,5 +1,5 @@
 import type { PcbStyleIssue } from "./types"
-/** Only eligible long segments at odd angles are errors. */
+/** Highlight original copper for both odd-angle and staircase findings. */
 export function getIssueHighlights(issues: PcbStyleIssue[]) {
   return issues.map((issue) => ({
     issue,

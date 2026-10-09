@@ -8,6 +8,7 @@ import {
 import { buildAnalysisContext } from "../lib/segments"
 import { renderPcbStyleSvg } from "../lib/create-pcb-style-issue-artifacts"
 import { realBoards } from "./fixtures/real-boards"
+import type { PcbTraceSegmentOddAngle } from "../lib"
 
 for (const board of realBoards) {
   test(
@@ -45,10 +46,15 @@ for (const board of realBoards) {
         expect(issue.start).toEqual(endpoint(a, true))
         expect(issue.end).toEqual(endpoint(b, false))
         expect(issue.severity).toBe("error")
-        expect(issue.lengthMm).toBeGreaterThan(5)
-        expect(issue.maxSegmentLengthMm).toBe(5)
-        expect(issue.deviationDegrees).toBeGreaterThan(0.1)
-        expect(issue.angleToleranceDegrees).toBe(0.1)
+        if (issue.lineItemType === "PcbTraceSegmentOddAngle") {
+          expect(issue.lengthMm).toBeGreaterThan(5)
+          expect(issue.maxSegmentLengthMm).toBe(5)
+          expect(issue.deviationDegrees).toBeGreaterThan(0.1)
+          expect(issue.angleToleranceDegrees).toBe(0.1)
+        } else {
+          expect(issue.lengthMm).toBeGreaterThanOrEqual(2 - 1e-9)
+          expect(issue.bendCount).toBeGreaterThanOrEqual(6)
+        }
         expect(issue.location.x).toBeGreaterThanOrEqual(issue.bounds.minX)
         expect(issue.location.x).toBeLessThanOrEqual(issue.bounds.maxX)
         expect(issue.location.y).toBeGreaterThanOrEqual(issue.bounds.minY)
@@ -131,7 +137,12 @@ test("Game Boy's near-horizontal source_trace_141_0 is accepted at 4° but confi
   const selectSegment = (
     issues: ReturnType<typeof analyzePcbStyle>["issues"],
   ) =>
-    issues.filter((i) => i.circuitJsonIndex === 933 && i.startRouteIndex === 7)
+    issues.filter(
+      (i): i is PcbTraceSegmentOddAngle =>
+        i.lineItemType === "PcbTraceSegmentOddAngle" &&
+        i.circuitJsonIndex === 933 &&
+        i.startRouteIndex === 7,
+    )
   const defaultAnalysis = analyzePcbStyle(cj)
   const defaultIssues = selectSegment(defaultAnalysis.issues)
   expect(defaultIssues).toEqual([])
@@ -233,7 +244,11 @@ test("Arduino Micro's inner-layer artifacts keep global issue indices and highli
 
 test("RC car controller highlights its two long odd-angle bottom-layer segments at the default thresholds", () => {
   const cj = realBoards.find((b) => b.id === "rc-car-controller")!.circuitJson
-  const analysis = analyzePcbStyle(cj)
+  const analysis = {
+    issues: analyzePcbStyle(cj, {
+      issueTypes: ["PcbTraceSegmentOddAngle"],
+    }).issues.filter((i) => i.lineItemType === "PcbTraceSegmentOddAngle"),
+  }
   expect(
     analysis.issues.map((i) => [
       i.issueId,
@@ -262,8 +277,10 @@ test("RC car controller highlights its two long odd-angle bottom-layer segments 
   // Both consecutive segments share a trace ID but retain independent locations.
   const svg = renderPcbStyleSvg(cj, analysis.issues)
   expect(svg.match(/<line[^>]*stroke="#ff5555"/g)).toHaveLength(2)
-  const artifacts = createPcbStyleIssueArtifacts(cj)
+  const artifacts = createPcbStyleIssueArtifacts(cj, { analysis })
   expect(artifacts.map((a) => a.issue)).toEqual(analysis.issues)
   expect(artifacts.map((a) => a.issueIndex)).toEqual([0, 1])
-  expect(createPcbStyleIssueArtifacts(cj, { layer: "top" })).toEqual([])
+  expect(createPcbStyleIssueArtifacts(cj, { analysis, layer: "top" })).toEqual(
+    [],
+  )
 })

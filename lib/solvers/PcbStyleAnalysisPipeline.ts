@@ -14,6 +14,7 @@ import type {
 import { visualizeIssues } from "../visualize"
 import { LongTraceSegmentSolver } from "./LongTraceSegmentSolver"
 import { OddAngleTraceSegmentSolver } from "./OddAngleTraceSegmentSolver"
+import { StaircaseTraceSolver } from "./StaircaseTraceSolver"
 export class PcbStyleAnalysisPipeline extends BasePipelineSolver<CircuitJson> {
   ctx!: AnalysisContext
   pipelineDef: PipelineStep<BaseSolver>[] = [
@@ -38,20 +39,34 @@ export class PcbStyleAnalysisPipeline extends BasePipelineSolver<CircuitJson> {
         },
       ],
     ),
+    definePipelineStep(
+      "StaircaseTraceSolver",
+      StaircaseTraceSolver,
+      (p: PcbStyleAnalysisPipeline) => [
+        {
+          ctx: p.ctx,
+          minStaircaseBends: p.options.minStaircaseBends,
+          minStaircaseLengthMm: p.options.minStaircaseLengthMm,
+          maxStairStepLengthMm: p.options.maxStairStepLengthMm,
+        },
+      ],
+    ),
   ]
   constructor(
     circuitJson: CircuitJson,
     public options: PcbStyleAnalysisOptions = {},
   ) {
     super(circuitJson)
-    // Selecting the issue type still requires the length eligibility stage.
-    if (
-      options.issueTypes &&
-      !options.issueTypes.includes("PcbTraceSegmentOddAngle")
-    )
-      this.pipelineDef = []
+    // Odd-angle selection still requires the length eligibility stage.
+    if (options.issueTypes) {
+      const oddAngles = options.issueTypes.includes("PcbTraceSegmentOddAngle")
+      const staircases = options.issueTypes.includes("PcbTraceStaircase")
+      this.pipelineDef = this.pipelineDef.filter((step) =>
+        step.solverName === "StaircaseTraceSolver" ? staircases : oddAngles,
+      )
+    }
     this.MAX_ITERATIONS = circuitJson.reduce(
-      (n, e) => n + (e.type === "pcb_trace" ? e.route.length * 4 : 0),
+      (n, e) => n + (e.type === "pcb_trace" ? e.route.length * 5 : 0),
       10,
     )
   }
@@ -60,10 +75,14 @@ export class PcbStyleAnalysisPipeline extends BasePipelineSolver<CircuitJson> {
   }
   override getOutput(): PcbStyleAnalysisResult {
     return {
-      issues:
-        this.getSolver<OddAngleTraceSegmentSolver>(
+      issues: [
+        ...(this.getSolver<OddAngleTraceSegmentSolver>(
           "OddAngleTraceSegmentSolver",
-        )?.getOutput() ?? [],
+        )?.getOutput() ?? []),
+        ...(this.getSolver<StaircaseTraceSolver>(
+          "StaircaseTraceSolver",
+        )?.getOutput() ?? []),
+      ],
     }
   }
   override getConstructorParams(): [CircuitJson, PcbStyleAnalysisOptions] {

@@ -16,11 +16,11 @@ function snapshot(name: string, svg: string) {
 test("visual: AM3352 staircase highlights original copper rather than its chord", () => {
   const cj = am3352 as CircuitJson
   const analysis = analyzePcbStyle(cj)
-  expect(analysis.issues).toHaveLength(1)
+  expect(analysis.issues).toHaveLength(2)
   snapshot(
     "am3352-segmented-trace-overview",
     renderPcbStyleSvg(cj, analysis.issues, {
-      title: `AM3352 SBC — segmented run — ${analysis.issues.length} issue detected`,
+      title: `AM3352 SBC — segmented run — ${analysis.issues.length} issues detected`,
     }),
   )
 })

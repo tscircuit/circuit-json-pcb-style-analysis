@@ -1,11 +1,11 @@
 import { expect, test } from "bun:test"
 import type { CircuitJson, PcbTraceRoutePoint } from "circuit-json"
 import {
-  analyzePcbStyle,
   createPcbStyleIssueArtifacts,
   OddAngleTraceSegmentSolver,
 } from "../lib"
 import { buildAnalysisContext } from "../lib/segments"
+import { analyzeOddAngles as analyzePcbStyle } from "./fixtures/odd-angle-analysis"
 import { buildTraceRuns } from "../lib/trace-runs"
 import am3352 from "./assets/am3352-segmented-trace.circuit.json"
 
