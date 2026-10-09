@@ -1,3 +1,5 @@
+# Created using @tscircuit/plop (npm install -g @tscircuit/plop)
+# GitHub Packages is served through https://jscdn.tscircuit.com.
 name: Publish to GitHub Packages
 
 on:
@@ -52,6 +54,7 @@ jobs:
       - run: bun run typecheck
       - run: bun test
       - run: bun run build
+      - run: bun run check:package
       - name: Publish package
         run: bunx pver release --no-push-main
         env:
@@ -62,6 +65,8 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Verify published package through jscdn
+        run: node scripts/check-package.mjs --jscdn "${{ steps.package-version.outputs.version }}"
       - name: Create version-bump pull request
         id: create-pr
         uses: peter-evans/create-pull-request@v6
@@ -80,3 +85,10 @@ jobs:
           gh pr merge ${{ steps.create-pr.outputs.pull-request-number }} --auto --squash --delete-branch --subject "chore: bump version to v${{ steps.package-version.outputs.version }}"
         env:
           GH_TOKEN: ${{ secrets.TSCIRCUIT_BOT_GITHUB_TOKEN }}
+      - name: Notify release tracker of new version
+        continue-on-error: true
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PACKAGE_JSON=$(cat package.json)
+          PAYLOAD=$(jq -n --arg repo "${{ github.repository }}" --arg version "$VERSION" --argjson package_json "$PACKAGE_JSON" '{event:{event_type:"versions_updated",repo:$repo,version:$version,package_json:$package_json}}')
+          curl --fail-with-body -X POST https://release-tracker.tscircuit.com/release_events/create -H "Content-Type: application/json" -d "$PAYLOAD"

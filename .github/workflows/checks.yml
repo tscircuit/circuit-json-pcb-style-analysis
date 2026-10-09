@@ -15,5 +15,6 @@ jobs:
       - run: bun test
       - run: bun run format:check
       - run: bun run build
+      - run: bun run check:package
       - run: bun run build:site
 
