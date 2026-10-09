@@ -65,8 +65,6 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-      - name: Verify published package through jscdn
-        run: node scripts/check-package.mjs --jscdn "${{ steps.package-version.outputs.version }}"
       - name: Create version-bump pull request
         id: create-pr
         uses: peter-evans/create-pull-request@v6
@@ -85,6 +83,8 @@ jobs:
           gh pr merge ${{ steps.create-pr.outputs.pull-request-number }} --auto --squash --delete-branch --subject "chore: bump version to v${{ steps.package-version.outputs.version }}"
         env:
           GH_TOKEN: ${{ secrets.TSCIRCUIT_BOT_GITHUB_TOKEN }}
+      - name: Verify published package through jscdn
+        run: node scripts/check-package.mjs --jscdn "${{ steps.package-version.outputs.version }}"
       - name: Notify release tracker of new version
         continue-on-error: true
         run: |
