@@ -48,11 +48,16 @@ const circuitJson = [{ type: "pcb_trace", pcb_trace_id: "staircase", route }]
 const analysis = analyzer.analyzePcbStyle(circuitJson)
 assert.equal(analysis.issues.length, 1)
 assert.equal(analysis.issues[0].lineItemType, "PcbTraceStaircase")
-assert.match(analyzer.renderPcbStyleSvg(circuitJson, analysis.issues), /1 errors/)
+assert.match(
+  analyzer.renderPcbStyleSvg(circuitJson, analysis.issues),
+  /1 errors/,
+)
 assert.deepEqual(analyzer.analyzePcbStyle([]), { issues: [] })
 
 if (process.argv[2] !== "--jscdn") {
   const subpath = await import(`${packageJson.name}/analysis`)
   assert.deepEqual(subpath.analyzePcbStyle(circuitJson), analysis)
 }
-console.log(`Verified ${packageJson.name} ${process.argv[3] ?? packageJson.version}`)
+console.log(
+  `Verified ${packageJson.name} ${process.argv[3] ?? packageJson.version}`,
+)
