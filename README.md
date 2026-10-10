@@ -6,6 +6,8 @@ Length and angle checks also apply to **effective straight runs**. Adding interm
 
 `PcbTraceStaircase` findings require at least **6 alternating bends over 2 mm of copper**, between two consistent forward headings 15°–90° apart. Headings match within 4°. Each step must be at most **1 mm after merging co-directed pieces**. Thus subdividing a long step cannot fabricate a staircase or bypass its step-length limit. This rule does not depend on absolute angle, the odd-angle thresholds, or trace width. Ordinary corners, smooth arcs, and backtracking length-tuning meanders do not match this pattern. These findings describe routing style; a replacement route still requires clearance checks.
 
+Traces with explicit length-matching requirements are exempt from both style rules. The analyzer resolves `pcb_trace.source_trace_id` against `source_bus.source_trace_ids` and `length_match_source_trace_ids` when the bus declares `max_length_skew` (including zero), `target_length`, or a nonempty `length_match_source_trace_ids` list. Every PCB trace belonging to those source traces is exempt, while its copper remains visible in SVGs. Bus membership alone, impedance constraints, and maximum/minimum length limits alone do not exempt traces. This exemption does not verify that the length requirement is met.
+
 ## Install
 
 Install [Bun](https://bun.sh/docs/installation), then install the CLI from GitHub:

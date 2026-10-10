@@ -67,6 +67,8 @@ export interface PcbStyleAnalysisOptions {
 export interface AnalysisContext {
   circuitJson: CircuitJson
   segments: TraceSegment[]
+  /** Bus members and comparison traces with explicit length-matching requirements. */
+  lengthMatchedSourceTraceIds?: ReadonlySet<string>
 }
 export interface PcbStyleAnalysisResult {
   issues: PcbStyleIssue[]

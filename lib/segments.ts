@@ -13,6 +13,19 @@ function layer(p: PcbTraceRoutePoint, outgoing: boolean): string {
 export function buildAnalysisContext(
   circuitJson: CircuitJson,
 ): AnalysisContext {
+  const lengthMatchedSourceTraceIds = new Set<string>()
+  for (const item of circuitJson) {
+    if (item.type !== "source_bus") continue
+    if (
+      item.max_length_skew === undefined &&
+      item.target_length === undefined &&
+      !item.length_match_source_trace_ids?.length
+    )
+      continue
+    for (const id of item.source_trace_ids) lengthMatchedSourceTraceIds.add(id)
+    for (const id of item.length_match_source_trace_ids ?? [])
+      lengthMatchedSourceTraceIds.add(id)
+  }
   const segments: TraceSegment[] = []
   for (const [circuitJsonIndex, item] of circuitJson.entries()) {
     if (item.type !== "pcb_trace") continue
@@ -56,5 +69,5 @@ export function buildAnalysisContext(
       })
     }
   }
-  return { circuitJson, segments }
+  return { circuitJson, segments, lengthMatchedSourceTraceIds }
 }

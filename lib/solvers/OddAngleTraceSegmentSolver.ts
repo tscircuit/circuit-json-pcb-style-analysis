@@ -4,7 +4,7 @@ import type {
   PcbTraceSegmentOddAngle,
 } from "../types"
 import { visualizeIssues } from "../visualize"
-import { buildTraceRuns } from "../trace-runs"
+import { buildTraceRuns, isLengthMatchedTrace } from "../trace-runs"
 import { locateIssue, SegmentIssueSolver } from "./SegmentIssueSolver"
 export interface OddAngleTraceSegmentParams {
   ctx: AnalysisContext
@@ -47,6 +47,7 @@ export class OddAngleTraceSegmentSolver extends SegmentIssueSolver {
     }
   }
   override checkSegment(s: TraceSegment): PcbTraceSegmentOddAngle | undefined {
+    if (isLengthMatchedTrace(this.params.ctx, s)) return
     if (s.lengthMm <= this.params.maxSegmentLengthMm) return
     const angleDegrees =
       ((Math.atan2(s.end.y - s.start.y, s.end.x - s.start.x) * 180) / Math.PI +

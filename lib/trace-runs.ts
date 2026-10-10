@@ -58,7 +58,17 @@ export function buildTraceRuns(ctx: AnalysisContext): TraceSegment[] {
   }
   for (const connected of getConnectedTraceSegments(ctx)) simplify(connected)
   // Keep physical candidates too: approximation must never hide an existing error.
-  return [...ctx.segments, ...runs]
+  return [...ctx.segments.filter((s) => !isLengthMatchedTrace(ctx, s)), ...runs]
+}
+
+export function isLengthMatchedTrace(
+  ctx: AnalysisContext,
+  segment: TraceSegment,
+): boolean {
+  return (
+    segment.sourceTraceId !== undefined &&
+    (ctx.lengthMatchedSourceTraceIds?.has(segment.sourceTraceId) ?? false)
+  )
 }
 
 /** Physical wire chains, separated by trace records, vias, pads, and layer changes. */
@@ -68,6 +78,11 @@ export function getConnectedTraceSegments(
   const chains: TraceSegment[][] = []
   let connected: TraceSegment[] = []
   for (const segment of ctx.segments) {
+    if (isLengthMatchedTrace(ctx, segment)) {
+      if (connected.length) chains.push(connected)
+      connected = []
+      continue
+    }
     const previous = connected.at(-1)
     if (previous) {
       const trace = ctx.circuitJson[segment.circuitJsonIndex]
