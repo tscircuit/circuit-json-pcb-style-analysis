@@ -1,0 +1,29 @@
+name: Verify jscdn Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Published package version to verify
+        required: true
+        default: "0.0.6"
+  pull_request:
+    paths:
+      - ".github/workflows/verify-jscdn.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-jscdn:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify published exports, staircase detection and SVG count
+        env:
+          PACKAGE_VERSION: ${{ inputs.version || '0.0.6' }}
+        run: node scripts/check-package.mjs --jscdn "$PACKAGE_VERSION"
