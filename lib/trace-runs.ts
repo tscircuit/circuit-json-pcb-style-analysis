@@ -1,4 +1,5 @@
 import type { PcbTraceRoutePoint } from "circuit-json"
+import { layerName } from "./segments"
 import type { AnalysisContext, Point, TraceSegment } from "./types"
 
 function distanceToSegment(p: Point, a: Point, b: Point): number {
@@ -96,7 +97,7 @@ export function getConnectedTraceSegments(
           .slice(previous.endRouteIndex, segment.startRouteIndex + 1)
           .every(
             (p: PcbTraceRoutePoint) =>
-              p.route_type === "wire" && p.layer === segment.layer,
+              p.route_type === "wire" && layerName(p.layer) === segment.layer,
           )
       if (
         !wireJoin ||

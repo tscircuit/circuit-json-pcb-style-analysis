@@ -4,10 +4,15 @@ function endpoint(p: PcbTraceRoutePoint, outgoing: boolean): Point {
   if (p.route_type === "through_pad") return outgoing ? p.end : p.start
   return { x: p.x, y: p.y }
 }
+/** circuit-json accepts layer references as strings or { name } objects; normalize to the name. */
+export function layerName(layer: string | { name: string }): string {
+  return typeof layer === "string" ? layer : layer.name
+}
 function layer(p: PcbTraceRoutePoint, outgoing: boolean): string {
-  if (p.route_type === "wire") return p.layer
-  if (p.route_type === "via") return outgoing ? p.to_layer : p.from_layer
-  return outgoing ? p.end_layer : p.start_layer
+  if (p.route_type === "wire") return layerName(p.layer)
+  if (p.route_type === "via")
+    return layerName(outgoing ? p.to_layer : p.from_layer)
+  return layerName(outgoing ? p.end_layer : p.start_layer)
 }
 /** Enumerate physical planar wires without bridging layer changes or pad interiors. */
 export function buildAnalysisContext(
